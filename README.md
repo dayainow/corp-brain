@@ -1,4 +1,4 @@
-# 🧠 CorpBrain
+# CorpBrain
 
 엔터프라이즈급 권한 관리(RBAC)를 지원하는 **로컬 RAG(Retrieval-Augmented Generation) 기반 사내 문서 챗봇 시스템**입니다.
 
