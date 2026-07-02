@@ -4,10 +4,11 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { Send, Database, Loader2, ShieldAlert, Trash2, LogOut, User, CircleHelp } from "lucide-react";
+import { Send, Database, Loader2, ShieldAlert, Trash2, LogOut, User, CircleHelp, FolderTree } from "lucide-react";
 import { ChatMessageContent } from "@/components/chat-message";
 import { ChatFeedback } from "@/components/chat-feedback";
 import { DocumentUpload } from "@/components/document-upload";
+import { DocumentTree } from "@/components/document-tree";
 import { HelpPanel } from "@/components/help-panel";
 import { OnboardingBanner } from "@/components/onboarding-banner";
 import { QuickStartPrompts } from "@/components/quick-start-prompts";
@@ -63,6 +64,7 @@ export default function Chat() {
   const [isIndexing, setIsIndexing] = useState(false);
   const [indexMessage, setIndexMessage] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [treeOpen, setTreeOpen] = useState(false);
 
   const userRole = (session?.user?.role ?? "general") as UserRole;
   const isAdmin = userRole === "admin";
@@ -126,6 +128,15 @@ export default function Chat() {
           <DocumentUpload userRole={userRole} />
 
           <button
+            onClick={() => setTreeOpen(true)}
+            className="flex items-center gap-1 px-2 sm:px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-sm transition-colors lg:hidden"
+            title="사내 문서 목록"
+          >
+            <FolderTree className="w-4 h-4" />
+            <span className="hidden sm:inline">문서</span>
+          </button>
+
+          <button
             onClick={() => setHelpOpen(true)}
             className="flex items-center gap-1 px-2 sm:px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-sm transition-colors"
             title="사용 가이드"
@@ -185,13 +196,27 @@ export default function Chat() {
         </div>
       </header>
 
-      <OnboardingBanner
-        userRole={userRole}
-        userName={session?.user?.name}
-        onOpenGuide={() => setHelpOpen(true)}
-      />
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <DocumentTree
+          key={userRole}
+          userRole={userRole}
+          mobileOpen={treeOpen}
+          onMobileClose={() => setTreeOpen(false)}
+          onSelectDocument={({ title, fileName }) => {
+            sendMessage({
+              text: `「${title}」(${fileName}) 문서의 주요 내용을 알려줘`,
+            });
+          }}
+        />
 
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 w-full max-w-4xl mx-auto flex flex-col gap-6">
+        <div className="flex flex-col flex-1 min-w-0">
+          <OnboardingBanner
+            userRole={userRole}
+            userName={session?.user?.name}
+            onOpenGuide={() => setHelpOpen(true)}
+          />
+
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 w-full max-w-4xl mx-auto flex flex-col gap-6">
         {error && (
           <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-sm text-red-700 dark:text-red-300">
             답변 생성에 실패했습니다. Ollama가 실행 중인지 확인해 주세요.
@@ -221,24 +246,24 @@ export default function Chat() {
             const prevQuery = prevUser ? getMessageText(prevUser) : undefined;
 
             return (
-            <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div
-                className={`max-w-[85%] rounded-2xl px-5 py-3 shadow-sm ${
-                  m.role === "user"
-                    ? "bg-blue-600 text-white rounded-br-sm"
-                    : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-sm border border-slate-100 dark:border-slate-700"
-                }`}
-              >
-                {m.role === "user" ? (
-                  <div className="whitespace-pre-wrap">{getMessageText(m)}</div>
-                ) : (
-                  <>
-                    <ChatMessageContent content={getMessageText(m)} />
-                    <ChatFeedback messageId={m.id} query={prevQuery} />
-                  </>
-                )}
+              <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-[85%] rounded-2xl px-5 py-3 shadow-sm ${
+                    m.role === "user"
+                      ? "bg-blue-600 text-white rounded-br-sm"
+                      : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-sm border border-slate-100 dark:border-slate-700"
+                  }`}
+                >
+                  {m.role === "user" ? (
+                    <div className="whitespace-pre-wrap">{getMessageText(m)}</div>
+                  ) : (
+                    <>
+                      <ChatMessageContent content={getMessageText(m)} />
+                      <ChatFeedback messageId={m.id} query={prevQuery} />
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
             );
           })
         )}
@@ -250,26 +275,28 @@ export default function Chat() {
             </div>
           </div>
         )}
-      </main>
+          </main>
 
-      <footer className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
-        <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto flex items-center relative">
-          <input
-            className="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-full pl-6 pr-14 py-4 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
-            value={input}
-            placeholder="사내 문서와 관련된 질문을 입력하세요..."
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            disabled={isLoading || !input.trim()}
-            className="absolute right-2 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-          >
-            <Send className="w-5 h-5" />
-          </button>
-        </form>
-      </footer>
+          <footer className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+            <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto flex items-center relative">
+              <input
+                className="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-full pl-6 pr-14 py-4 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                value={input}
+                placeholder="사내 문서와 관련된 질문을 입력하세요..."
+                onChange={(e) => setInput(e.target.value)}
+                disabled={isLoading}
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !input.trim()}
+                className="absolute right-2 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </form>
+          </footer>
+        </div>
+      </div>
 
       <HelpPanel
         key={helpOpen ? "open" : "closed"}
