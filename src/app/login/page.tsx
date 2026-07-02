@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Database, Loader2 } from "lucide-react";
+import { LoginGuide } from "@/components/login-guide";
 
 const DEMO_ACCOUNTS = [
   { email: "kim.junho@novapay.kr", role: "일반 (Engineering)", label: "김준호" },
@@ -135,6 +136,8 @@ function LoginForm() {
           ))}
         </div>
       </div>
+
+      <LoginGuide />
     </div>
   );
 }

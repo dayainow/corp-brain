@@ -4,9 +4,12 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { Send, Database, Loader2, ShieldAlert, Trash2, LogOut, User } from "lucide-react";
+import { Send, Database, Loader2, ShieldAlert, Trash2, LogOut, User, CircleHelp } from "lucide-react";
 import { ChatMessageContent } from "@/components/chat-message";
 import { DocumentUpload } from "@/components/document-upload";
+import { HelpPanel } from "@/components/help-panel";
+import { OnboardingBanner } from "@/components/onboarding-banner";
+import { QuickStartPrompts } from "@/components/quick-start-prompts";
 import type { UserRole } from "@/lib/rbac";
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -60,6 +63,7 @@ export default function Chat() {
   const isLoading = status !== "ready" && status !== "error";
   const [isIndexing, setIsIndexing] = useState(false);
   const [indexMessage, setIndexMessage] = useState("");
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const userRole = (session?.user?.role ?? "general") as UserRole;
   const isAdmin = userRole === "admin";
@@ -123,6 +127,15 @@ export default function Chat() {
           <DocumentUpload userRole={userRole} />
 
           <button
+            onClick={() => setHelpOpen(true)}
+            className="flex items-center gap-1 px-2 sm:px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-sm transition-colors"
+            title="사용 가이드"
+          >
+            <CircleHelp className="w-4 h-4" />
+            <span className="hidden sm:inline">도움말</span>
+          </button>
+
+          <button
             onClick={() => {
               if (confirm("모든 대화 내역을 지우시겠습니까?")) {
                 localStorage.removeItem("chat-session");
@@ -173,6 +186,12 @@ export default function Chat() {
         </div>
       </header>
 
+      <OnboardingBanner
+        userRole={userRole}
+        userName={session?.user?.name}
+        onOpenGuide={() => setHelpOpen(true)}
+      />
+
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 w-full max-w-4xl mx-auto flex flex-col gap-6">
         {messages && messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-500 dark:text-slate-400 gap-4">
@@ -181,9 +200,10 @@ export default function Chat() {
               안녕하세요, {session?.user?.name}님.<br />
               사내 문서에 대해 무엇이든 물어보세요.
             </p>
-            <p className="text-sm text-slate-400">
-              (예: &quot;우리 회사 휴가 규정이 어떻게 돼?&quot;)
-            </p>
+            <QuickStartPrompts
+              userRole={userRole}
+              onSelect={(prompt) => sendMessage({ text: prompt })}
+            />
           </div>
         ) : (
           messages?.map((m) => (
@@ -232,6 +252,13 @@ export default function Chat() {
           </button>
         </form>
       </footer>
+
+      <HelpPanel
+        key={helpOpen ? "open" : "closed"}
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        userRole={userRole}
+      />
     </div>
   );
 }

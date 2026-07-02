@@ -5,6 +5,7 @@ test.describe("로그인", () => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "CorpBrain" })).toBeVisible();
     await expect(page.getByPlaceholder("name@novapay.kr")).toBeVisible();
+    await expect(page.getByText("처음이신가요? 사용 안내")).toBeVisible();
   });
 
   test("데모 계정 로그인 성공", async ({ page }) => {
@@ -13,7 +14,7 @@ test.describe("로그인", () => {
     await page.locator('input[type="password"]').fill("novapay2026");
     await page.getByRole("button", { name: "로그인", exact: true }).click();
     await page.waitForURL("/", { timeout: 10_000 });
-    await expect(page.getByText("CorpBrain")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "CorpBrain" })).toBeVisible();
   });
 
   test("잘못된 비밀번호 거부", async ({ page }) => {

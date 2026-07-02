@@ -10,6 +10,7 @@ import {
   Activity,
   ArrowLeft,
   Loader2,
+  CircleHelp,
 } from "lucide-react";
 import type { AuditEntry } from "@/lib/audit";
 
@@ -94,9 +95,17 @@ export default function AdminPage() {
             <h1 className="text-xl font-semibold">Admin Dashboard</h1>
             <span className="text-sm text-slate-400">NovaPay CorpBrain</span>
           </div>
-          <Link href="/" className="flex items-center gap-1 text-sm text-slate-500 hover:text-blue-600">
-            <ArrowLeft className="w-4 h-4" /> 채팅으로
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/guide"
+              className="flex items-center gap-1 text-sm text-slate-500 hover:text-blue-600 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700"
+            >
+              <CircleHelp className="w-4 h-4" /> 운영 가이드
+            </Link>
+            <Link href="/" className="flex items-center gap-1 text-sm text-slate-500 hover:text-blue-600">
+              <ArrowLeft className="w-4 h-4" /> 채팅으로
+            </Link>
+          </div>
         </div>
       </header>
 
