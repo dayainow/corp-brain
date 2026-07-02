@@ -12,6 +12,9 @@
     "db:init": "tsx scripts/init-db.ts",
     "db:migrate": "tsx scripts/migrate-to-pgvector.ts",
     "eval:search": "tsx scripts/eval-search.ts",
+    "index:vault": "tsx scripts/index-vault.ts",
+    "harness:quality": "tsx scripts/run-quality-harness.ts",
+    "quality:loop": "npm run lint && npm test && npm run harness:quality && npm run build && npm run test:e2e",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },

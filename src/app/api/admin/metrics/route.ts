@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { requireAuth } from "@/lib/auth/guard";
+import { getVectorStore } from "@/lib/vector-store";
 import { generateEmbedding } from "@/lib/embeddings";
 import { hybridSearch } from "@/lib/vector-store";
 import {
@@ -19,6 +20,26 @@ let cachedMetrics: {
 } | null = null;
 
 async function computeMetrics() {
+  const store = getVectorStore();
+  const chunkCount = await store.count();
+  if (chunkCount === 0) {
+    return {
+      status: 200 as const,
+      payload: {
+        metrics: {
+          hitAt1: 0,
+          hitAt3: 0,
+          mrr: 0,
+          queryCount: 0,
+          targetHitAt3: 0.8,
+        },
+        results: [],
+        cachedAt: new Date().toISOString(),
+        hint: "Sync Vault 후 평가 가능",
+      },
+    };
+  }
+
   const evalPath = path.join(process.cwd(), "data/eval-queries.json");
   if (!fs.existsSync(evalPath)) {
     return { error: "평가 데이터 없음", status: 404 as const };

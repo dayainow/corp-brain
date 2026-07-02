@@ -7,6 +7,7 @@ import { config } from "@/lib/config";
 import { writeAuditLog, getClientIp } from "@/lib/audit";
 import { checkRateLimit, denyRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 import { validateChatMessages, toModelMessages } from "@/lib/chat/messages";
+import { buildSearchQuery } from "@/lib/search/query-context";
 import { logError } from "@/lib/logger";
 
 export const maxDuration = 30;
@@ -43,9 +44,10 @@ export async function POST(req: Request) {
     }
 
     const latestMessage = validation.text;
-    const queryEmbedding = await generateEmbedding(latestMessage);
+    const searchQuery = buildSearchQuery(body.messages);
+    const queryEmbedding = await generateEmbedding(searchQuery);
     const relevantDocs = await hybridSearch(
-      latestMessage,
+      searchQuery,
       queryEmbedding,
       config.rag.topK,
       userRole

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import fs from "fs";
 import { getVectorStore } from "@/lib/vector-store";
-import { config } from "@/lib/config";
+import { config, getVaultPath } from "@/lib/config";
 import { isPgAvailable } from "@/lib/db/client";
 
 async function checkOllama(): Promise<{ ok: boolean; error?: string }> {
@@ -30,8 +31,14 @@ export async function GET() {
 
   try {
     const store = getVectorStore();
-    checks.chunkCount = await store.count();
+    const count = await store.count();
+    checks.chunkCount = count;
     nested.vectorStore = "ok";
+    if (count === 0) {
+      checks.status = "degraded";
+      nested.index = "empty";
+      checks.indexHint = "admin 계정으로 Sync Vault를 실행하세요";
+    }
   } catch (e) {
     checks.status = "degraded";
     nested.vectorStore = "error";
@@ -44,6 +51,13 @@ export async function GET() {
     if (!pgOk) checks.status = "degraded";
   }
 
+  const vaultPath = getVaultPath();
+  nested.vault = fs.existsSync(vaultPath) ? "ok" : "missing";
+  if (!fs.existsSync(vaultPath)) {
+    checks.status = "degraded";
+    checks.vaultPath = vaultPath;
+  }
+
   const ollama = await checkOllama();
   nested.ollama = ollama.ok ? "ok" : "error";
   if (!ollama.ok) {
@@ -51,6 +65,12 @@ export async function GET() {
     checks.ollamaError = ollama.error;
   }
 
-  const status = checks.status === "ok" ? 200 : 503;
-  return NextResponse.json(checks, { status });
+  const criticalFailure =
+    nested.vectorStore === "error" || nested.vault === "missing";
+  if (criticalFailure) {
+    checks.status = "unhealthy";
+  }
+
+  const httpStatus = criticalFailure ? 503 : 200;
+  return NextResponse.json(checks, { status: httpStatus });
 }

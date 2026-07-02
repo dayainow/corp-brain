@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { config } from "@/lib/config";
 import { exportToSiem } from "./siem";
+import { log } from "@/lib/logger";
 
 export type AuditAction =
   | "auth.login"
@@ -42,7 +43,13 @@ export async function writeAuditLog(entry: Omit<AuditEntry, "timestamp">): Promi
     );
     await exportToSiem(line);
   } catch (error) {
-    console.error("Audit log write failed:", error);
+    log("warn", {
+      scope: "audit",
+      message: "audit log write failed",
+      err: error,
+      action: entry.action,
+      userId: entry.userId,
+    });
   }
 }
 

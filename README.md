@@ -283,7 +283,10 @@ SLACK_SIGNING_SECRET=your-signing-secret
 | `npm run test:watch` | Vitest watch 모드 |
 | `npm run test:e2e` | Playwright E2E |
 | `npm run test:e2e:ui` | Playwright UI 모드 |
-| `npm run eval:search` | 검색 품질 CLI 평가 |
+| `npm run eval:search` | 검색 품질 CLI 평가 (Hit@3 게이트) |
+| `npm run index:vault` | vault 전체 인덱싱 |
+| `npm run harness:quality` | 5팀 품질 하네스 실행 |
+| `npm run quality:loop` | lint → test → harness → build → e2e |
 | `npm run db:init` | PgVector 스키마 생성 |
 | `npm run db:migrate` | vectors.json → PgVector 이전 |
 | `npm run lint` | ESLint |

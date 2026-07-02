@@ -1,13 +1,11 @@
 import { pipeline, env } from "@xenova/transformers";
+import { config } from "@/lib/config";
 
-// Disable local models directory to force download from Hugging Face initially, 
-// or you can configure it to cache locally.
 env.allowLocalModels = false;
 
-// We use the singleton pattern for the embedding pipeline to avoid reloading it on every request.
 class EmbeddingPipeline {
   static task = "feature-extraction" as const;
-  static model = "Xenova/all-MiniLM-L6-v2";
+  static model = config.rag.embeddingModel;
   static instance: Promise<Awaited<ReturnType<typeof pipeline>>> | null = null;
 
   static async getInstance(progressCallback?: (progress: unknown) => void) {
@@ -15,6 +13,11 @@ class EmbeddingPipeline {
       this.instance = pipeline(this.task, this.model, { progress_callback: progressCallback });
     }
     return this.instance;
+  }
+
+  /** 서버 기동 시 cold start 완화 */
+  static async warmup(): Promise<void> {
+    await generateEmbedding("warmup");
   }
 }
 

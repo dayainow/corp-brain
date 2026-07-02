@@ -51,15 +51,18 @@ export default function AdminPage() {
     Promise.all([
       fetch("/api/admin/audit?limit=50").then((r) => r.json()),
       fetch("/api/admin/documents").then((r) => r.json()),
-      fetch("/api/admin/metrics").then((r) => r.json()),
     ])
-      .then(([auditData, docData, metricsData]) => {
+      .then(([auditData, docData]) => {
         setLogs(auditData.logs ?? []);
         setDocs(docData.documents ?? []);
         setStats(docData.stats ?? null);
-        setSearchMetrics(metricsData.metrics ?? null);
       })
       .finally(() => setLoading(false));
+
+    fetch("/api/admin/metrics")
+      .then((r) => r.json())
+      .then((metricsData) => setSearchMetrics(metricsData.metrics ?? null))
+      .catch(() => setSearchMetrics(null));
   }, [session, status]);
 
   if (status === "loading" || loading) {

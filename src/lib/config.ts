@@ -16,7 +16,7 @@ export const config = {
   },
   rag: {
     topK: Number(process.env.RAG_TOP_K ?? "5"),
-    embeddingModel: process.env.EMBEDDING_MODEL ?? "Xenova/all-MiniLM-L6-v2",
+    embeddingModel: process.env.EMBEDDING_MODEL ?? "Xenova/multilingual-e5-small",
   },
   vectorStore: {
     type: (process.env.VECTOR_STORE ?? "json") as "json" | "pgvector",
