@@ -91,8 +91,8 @@ export default function Chat() {
   if (sessionStatus === "loading") return null;
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 font-sans">
-      <header className="flex justify-between items-center p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+    <div className="flex flex-col h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans">
+      <header className="flex shrink-0 justify-between items-center p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-2">
           <Database className="w-6 h-6 text-blue-600 dark:text-blue-400" />
           <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">CorpBrain</h1>

@@ -55,7 +55,7 @@ function TreeNode({
             fileName: node.fileName ?? node.name,
           })
         }
-        className="w-full flex items-start gap-2 px-2 py-1.5 rounded-md text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-700 dark:hover:text-blue-300 transition-colors group"
+        className="w-full flex items-start gap-2 px-2 py-1.5 rounded-md text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-700 dark:hover:text-blue-300 transition-colors group min-w-0"
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
         title={`${label} — 클릭하면 이 문서에 대해 질문합니다`}
       >
@@ -81,7 +81,7 @@ function TreeNode({
       <button
         type="button"
         onClick={() => onToggle(node.id)}
-        className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors min-w-0"
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
         aria-expanded={isOpen}
       >
@@ -148,7 +148,7 @@ function TreePanel({
   }, []);
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
+    <div className="flex flex-col h-full w-full min-h-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
       <div className="flex items-center justify-between px-3 py-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <FolderTree className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
@@ -175,7 +175,7 @@ function TreePanel({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain p-2">
         {loading && (
           <div className="flex items-center justify-center gap-2 py-8 text-sm text-slate-500">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -200,8 +200,9 @@ function TreePanel({
         ))}
       </div>
 
-      <div className="px-3 py-2 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-400 dark:text-slate-500 shrink-0">
-        문서를 클릭하면 해당 내용으로 질문할 수 있습니다. 권한 밖 문서는 표시되지 않습니다.
+      <div className="shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 pt-2.5 pb-12 text-[11px] leading-relaxed text-slate-400 dark:text-slate-500">
+        <p>문서를 클릭하면 해당 내용으로 질문할 수 있습니다.</p>
+        <p className="mt-1">권한 밖 문서는 표시되지 않습니다.</p>
       </div>
     </div>
   );
@@ -254,7 +255,7 @@ export function DocumentTree({
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-72 shrink-0 h-full">
+      <aside className="hidden lg:flex w-72 shrink-0 min-h-0 h-full">
         <TreePanel
           key={stats?.visibleCount ?? "loading"}
           tree={tree}

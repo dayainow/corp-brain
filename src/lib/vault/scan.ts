@@ -62,6 +62,7 @@ async function scanDir(
     }
 
     if (!isSupportedExtension(path.extname(entry.name).toLowerCase())) continue;
+    if (entry.name.toLowerCase() === "readme.md") continue;
 
     const stat = await fs.promises.stat(fullPath);
     const relativePath = fullPath.replace(vaultPath, "").replace(/\\/g, "/");
