@@ -3,6 +3,7 @@ import { isDocumentExpired } from "@/lib/audit/siem";
 import { reciprocalRankFusion } from "@/lib/search/hybrid-core";
 import { rerankCandidates } from "@/lib/search/reranker";
 import { diversifyByFile } from "@/lib/search/file-diversity";
+import { crossEncodeRerank } from "@/lib/search/cross-encoder";
 import { config } from "@/lib/config";
 import { JsonVectorStore } from "./json-store";
 import { PgVectorStore } from "./pgvector-store";
@@ -53,7 +54,8 @@ export async function hybridSearch(
     })),
     candidateLimit
   );
-  return diversifyByFile(reranked, topK).map((item) => item.document);
+  const crossReranked = await crossEncodeRerank(query, reranked);
+  return diversifyByFile(crossReranked, topK).map((item) => item.document);
 }
 
 export async function saveVectors(docs: import("./types").VectorDocument[]): Promise<void> {

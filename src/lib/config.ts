@@ -18,6 +18,11 @@ export const config = {
     topK: Number(process.env.RAG_TOP_K ?? "5"),
     embeddingModel: process.env.EMBEDDING_MODEL ?? "Xenova/multilingual-e5-small",
   },
+  search: {
+    crossEncoderModel: process.env.CROSS_ENCODER_MODEL ?? "",
+    crossEncoderTopN: Number(process.env.CROSS_ENCODER_TOP_N ?? "10"),
+    crossEncoderWeight: Number(process.env.CROSS_ENCODER_WEIGHT ?? "2"),
+  },
   vectorStore: {
     type: (process.env.VECTOR_STORE ?? "json") as "json" | "pgvector",
     jsonPath: resolvePath("src/data/vectors.json"),

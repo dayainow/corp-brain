@@ -1,12 +1,12 @@
-import type { VectorDocument } from "@/lib/vector-store/types";
+import type { RankedDocument } from "./reranker";
 
 /** 파일당 최고 점수 청크 1개 우선 → topK (검색 다양성·Hit@K 개선) */
-export function diversifyByFile<T extends { document: VectorDocument; rerankScore: number }>(
-  ranked: T[],
+export function diversifyByFile(
+  ranked: RankedDocument[],
   topK: number
-): T[] {
+): RankedDocument[] {
   const seen = new Set<string>();
-  const diverse: T[] = [];
+  const diverse: RankedDocument[] = [];
 
   for (const item of ranked) {
     const fileName = item.document.metadata.fileName as string;
