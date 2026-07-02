@@ -12,6 +12,10 @@
 - **100% 로컬 프라이버시 유지**: `Ollama` 및 로컬 임베딩 모델(Transformers.js)을 사용하여 사내 기밀 문서를 외부 클라우드로 전송하지 않음
 - **세션 기억 기능**: 브라우저 스토리지를 활용한 대화 내용 저장
 - **출처 명시**: AI 답변 시 참고한 사내 문서의 정확한 파일명(출처 뱃지) 표기
+- **NextAuth 인증**: NovaPay 데모 계정 + Google Workspace SSO (`@novapay.kr`)
+- **문서 업로드**: Manager 이상 마크다운 업로드 + 자동 증분 인덱싱
+- **Admin 대시보드**: 감사 로그, 문서 통계, Vault 현황 (`/admin`)
+- **PgVector 지원**: JSON 또는 PostgreSQL 벡터 DB 선택 가능
 
 ---
 
@@ -258,8 +262,12 @@ graph TD
 - [Node.js](https://nodejs.org/) (v18 이상 권장)
 - [Ollama](https://ollama.com/) 설치 및 실행
   ```bash
-  # Llama 3 모델 다운로드 및 실행
   ollama run llama3
+  ```
+- 환경 변수 설정
+  ```bash
+  cp .env.example .env.local
+  # AUTH_SECRET=$(openssl rand -base64 32) 값 입력
   ```
 
 ### 2. 설치 및 실행 (Installation)
@@ -277,8 +285,25 @@ npm run dev
 
 ### 3. 테스트 방법
 1. 브라우저에서 `http://localhost:3000`에 접속합니다.
-2. 우측 상단의 `Sync Vault` 버튼을 눌러 `/sample-docs` 폴더 내의 더미 마크다운 문서들을 인덱싱합니다.
-3. 문서의 `role` 속성에 따라 `General`, `Manager`, `Admin` 권한을 선택하며 RAG가 권한에 맞게 답변하는지 테스트할 수 있습니다.
+2. NovaPay 데모 계정으로 로그인합니다 (예: `lee.minho@novapay.kr` / `novapay2026`).
+3. Admin 계정으로 `Sync Vault`를 실행해 문서를 인덱싱합니다.
+4. 권한별로 다른 문서가 검색되는지 확인합니다.
+
+### 4. Docker 실행 (PgVector)
+```bash
+docker compose up -d postgres   # PostgreSQL + PgVector
+npm run db:init                 # 스키마 초기화
+VECTOR_STORE=pgvector npm run db:migrate  # JSON → PgVector 마이그레이션
+docker compose up app           # 앱 실행
+```
+
+### 5. 데모 계정 (NovaPay)
+
+| 이메일 | Role | 비밀번호 |
+|--------|------|----------|
+| kim.junho@novapay.kr | general | novapay2026 |
+| park.suyeon@novapay.kr | manager | novapay2026 |
+| lee.minho@novapay.kr | admin | novapay2026 |
 
 ---
 
@@ -292,18 +317,18 @@ timeline
         Frontmatter RBAC : 사전 필터링
         Ollama + AI SDK v6 : 스트리밍 호환성 해결
         합성 문서 20종 : sample-docs 세트
-    section 🔄 Phase 2 — 인증 & 영속화
-        NextAuth.js 연동 : Role을 UI 선택 → 실제 인증 기반
-        PgVector / Pinecone : vectors.json → 상용 벡터 DB
-        문서 업로드 UI : Vault 동기화 자동화
-    section 📋 Phase 3 — UX & 품질
-        react-markdown : 응답 마크다운 렌더링 개선
-        Re-ranking : Cross-encoder 기반 2차 정렬
-        관측성 : 검색 품질 메트릭 & 로깅
-    section 🏢 Phase 4 — 엔터프라이즈
-        SSO / LDAP 연동 : 사내 IdP 통합
-        감사 로그 : 문서 접근 이력 추적
-        멀티 테넌트 : 부서별 Vault 분리
+    section ✅ Phase 2 — 인증 & 영속화 (완료)
+        NextAuth.js : Credentials + Google SSO
+        PgVector : 벡터 DB 영속화
+        문서 업로드 UI : 증분 인덱싱
+    section ✅ Phase 3 — 운영 & 품질 (완료)
+        Docker + CI/CD : GitHub Actions
+        Vitest : RBAC 단위 테스트
+        Rate Limiting : API 보호
+    section 🔄 Phase 4+ — 엔터프라이즈 (진행 중)
+        Admin Dashboard : 감사로그 & 문서 통계
+        Re-ranking : Cross-encoder 2차 정렬
+        Slack/Teams 봇 : 사내 메신저 연동
 ```
 
 | 우선순위 | 과제 | 현재 상태 | 목표 |
