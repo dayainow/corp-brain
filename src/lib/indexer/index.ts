@@ -4,6 +4,13 @@ import { generateEmbedding } from "../embeddings";
 import { getVectorStore } from "../vector-store";
 import type { VectorDocument } from "../vector-store/types";
 import { extractDocumentText, isSupportedExtension } from "../parsers";
+import {
+  hashFile,
+  isManifestEntryCurrent,
+  loadManifest,
+  saveManifest,
+  type IndexManifest,
+} from "./manifest";
 
 const META_SUFFIX = ".meta.json";
 
@@ -223,5 +230,72 @@ export async function runIndexing(vaultPath: string) {
   }
 
   console.log(`Indexing complete! Indexed ${vectorDocs.length} chunks.`);
-  return { files: files.length, chunks: vectorDocs.length };
+  const manifest: IndexManifest = {};
+  for (const file of files) {
+    const rel = path.relative(vaultPath, file);
+    const stat = await fs.promises.stat(file);
+    manifest[rel] = {
+      relativePath: rel,
+      fileName: path.basename(file),
+      mtimeMs: stat.mtimeMs,
+      contentHash: await hashFile(file),
+    };
+  }
+  await saveManifest(manifest);
+  return { files: files.length, chunks: vectorDocs.length, mode: "full" as const };
+}
+
+/** 변경·삭제분만 재인덱싱 (mtime + content hash) */
+export async function runIncrementalSync(vaultPath: string) {
+  console.log(`Incremental sync from vault: ${vaultPath}`);
+  const files = await getVaultFiles(vaultPath);
+  const manifest = await loadManifest();
+  const store = getVectorStore();
+  const currentPaths = new Set<string>();
+
+  let changed = 0;
+  let deleted = 0;
+  let chunks = 0;
+
+  for (const file of files) {
+    const rel = path.relative(vaultPath, file);
+    currentPaths.add(rel);
+    const stat = await fs.promises.stat(file);
+    const contentHash = await hashFile(file);
+    const prev = manifest[rel];
+
+    if (isManifestEntryCurrent(prev, stat.mtimeMs, contentHash)) {
+      continue;
+    }
+
+    const result = await indexSingleFile(file, vaultPath);
+    manifest[rel] = {
+      relativePath: rel,
+      fileName: path.basename(file),
+      mtimeMs: stat.mtimeMs,
+      contentHash,
+    };
+    changed += 1;
+    chunks += result.chunks;
+    console.log(`Updated ${result.fileName}: ${result.chunks} chunks`);
+  }
+
+  for (const rel of Object.keys(manifest)) {
+    if (currentPaths.has(rel)) continue;
+    const entry = manifest[rel];
+    await store.deleteByFileName(entry.fileName);
+    delete manifest[rel];
+    deleted += 1;
+    console.log(`Removed ${entry.fileName} from index`);
+  }
+
+  await saveManifest(manifest);
+  console.log(`Incremental sync complete: ${changed} updated, ${deleted} removed, ${chunks} chunks`);
+  return {
+    mode: "incremental" as const,
+    files: files.length,
+    changed,
+    deleted,
+    chunks,
+  };
 }

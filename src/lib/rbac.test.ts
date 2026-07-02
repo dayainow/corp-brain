@@ -5,6 +5,7 @@ import {
   canReindexVault,
   canAssignDocumentRole,
   hasMinimumRole,
+  getAccessibleRoles,
 } from "@/lib/rbac";
 
 describe("RBAC", () => {
@@ -47,6 +48,12 @@ describe("RBAC", () => {
     expect(canAssignDocumentRole("manager", "general")).toBe(true);
     expect(canAssignDocumentRole("manager", "manager")).toBe(true);
     expect(canAssignDocumentRole("manager", "admin")).toBe(false);
+  });
+
+  it("getAccessibleRoles SQL 필터 목록", () => {
+    expect(getAccessibleRoles("general")).toEqual(["general"]);
+    expect(getAccessibleRoles("manager")).toEqual(["general", "manager"]);
+    expect(getAccessibleRoles("admin")).toEqual(["general", "manager", "admin"]);
   });
 
   it("admin은 모든 문서 role 지정 가능", () => {

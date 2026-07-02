@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/guard";
 import { canReindexVault } from "@/lib/rbac";
-import { runIndexing } from "@/lib/indexer";
+import { runIndexing, runIncrementalSync } from "@/lib/indexer";
 import { getVaultPath } from "@/lib/config";
 import { writeAuditLog, getClientIp } from "@/lib/audit";
 import { checkRateLimit, denyRateLimit } from "@/lib/rate-limit";
@@ -28,7 +28,16 @@ export async function POST(req: Request) {
 
   try {
     const vaultPath = getVaultPath();
-    const result = await runIndexing(vaultPath);
+    let body: { mode?: string } = {};
+    try {
+      body = await req.json();
+    } catch {
+      // empty body → full sync
+    }
+    const result =
+      body.mode === "incremental"
+        ? await runIncrementalSync(vaultPath)
+        : await runIndexing(vaultPath);
 
     await writeAuditLog({
       action: "index.sync",

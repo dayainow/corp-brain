@@ -1,12 +1,34 @@
 import type { PoolClient } from "pg";
 import { withClient } from "@/lib/db/client";
 import type { UserRole } from "@/lib/rbac";
-import { canAccessDocument } from "@/lib/rbac";
-import type { VectorStore } from "./interface";
+import { getAccessibleRoles } from "@/lib/rbac";
+import type { VectorStore, SearchCandidateOptions } from "./interface";
 import type { DocumentMeta, VectorDocument } from "./types";
 
 function toVectorString(embedding: number[]): string {
   return `[${embedding.join(",")}]`;
+}
+
+function rowToDocument(row: {
+  id: string;
+  text: string;
+  file_name: string;
+  source: string;
+  role: string;
+  metadata: unknown;
+  embedding: string;
+}): VectorDocument {
+  return {
+    id: row.id,
+    text: row.text,
+    metadata: {
+      source: row.source,
+      fileName: row.file_name,
+      role: row.role,
+      ...(typeof row.metadata === "object" && row.metadata !== null ? row.metadata : {}),
+    },
+    embedding: parsePgVector(row.embedding),
+  };
 }
 
 export class PgVectorStore implements VectorStore {
@@ -46,27 +68,62 @@ export class PgVectorStore implements VectorStore {
   }
 
   async getAccessibleDocuments(userRole: UserRole): Promise<VectorDocument[]> {
+    const roles = getAccessibleRoles(userRole);
     const rows = await withClient(async (client) => {
       const result = await client.query(
         `SELECT id, text, file_name, source, role, metadata, embedding::text
-         FROM vector_chunks`
+         FROM vector_chunks
+         WHERE role = ANY($1::text[])`,
+        [roles]
       );
       return result.rows;
     });
 
-    return rows
-      .filter((row) => canAccessDocument(userRole, row.role || "general"))
-      .map((row) => ({
-        id: row.id,
-        text: row.text,
-        metadata: {
-          source: row.source,
-          fileName: row.file_name,
-          role: row.role,
-          ...(typeof row.metadata === "object" ? row.metadata : {}),
-        },
-        embedding: parsePgVector(row.embedding),
-      }));
+    return rows.map(rowToDocument);
+  }
+
+  async fetchSearchCandidates(options: SearchCandidateOptions): Promise<VectorDocument[]> {
+    const roles = getAccessibleRoles(options.userRole);
+    const limit = options.limit;
+    const vectorStr = toVectorString(options.queryEmbedding);
+    const tokens = options.query
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((t) => t.length > 1)
+      .slice(0, 6);
+
+    const rows = await withClient(async (client) => {
+      const vectorResult = await client.query(
+        `SELECT id, text, file_name, source, role, metadata, embedding::text
+         FROM vector_chunks
+         WHERE role = ANY($1::text[])
+         ORDER BY embedding <=> $2::vector
+         LIMIT $3`,
+        [roles, vectorStr, limit]
+      );
+
+      let keywordRows: typeof vectorResult.rows = [];
+      if (tokens.length > 0) {
+        const patterns = tokens.map((t) => `%${t}%`);
+        const keywordResult = await client.query(
+          `SELECT id, text, file_name, source, role, metadata, embedding::text
+           FROM vector_chunks
+           WHERE role = ANY($1::text[])
+             AND text ILIKE ANY($2::text[])
+           LIMIT $3`,
+          [roles, patterns, limit]
+        );
+        keywordRows = keywordResult.rows;
+      }
+
+      const merged = new Map<string, VectorDocument>();
+      for (const row of [...vectorResult.rows, ...keywordRows]) {
+        merged.set(row.id, rowToDocument(row));
+      }
+      return [...merged.values()];
+    });
+
+    return rows;
   }
 
   async count(): Promise<number> {

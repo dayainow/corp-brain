@@ -1,15 +1,20 @@
 #!/usr/bin/env tsx
 /**
- * Vault 전체 인덱싱 CLI (CI·로컬 eval용)
- * Usage: npm run index:vault
+ * Vault 인덱싱 CLI (CI·로컬 eval용)
+ * Usage:
+ *   npm run index:vault
+ *   npm run index:vault -- --incremental
  */
 import { getVaultPath } from "../src/lib/config";
-import { runIndexing } from "../src/lib/indexer";
+import { runIndexing, runIncrementalSync } from "../src/lib/indexer";
 
 async function main() {
+  const incremental = process.argv.includes("--incremental");
   const vaultPath = getVaultPath();
-  const result = await runIndexing(vaultPath);
-  console.log(`\n완료: ${result.files}개 파일, ${result.chunks}개 청크`);
+  const result = incremental
+    ? await runIncrementalSync(vaultPath)
+    : await runIndexing(vaultPath);
+  console.log(`\n완료 (${result.mode}):`, result);
 }
 
 main().catch((err) => {

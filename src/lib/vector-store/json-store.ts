@@ -3,7 +3,7 @@ import path from "path";
 import { config } from "@/lib/config";
 import type { UserRole } from "@/lib/rbac";
 import { canAccessDocument } from "@/lib/rbac";
-import type { VectorStore } from "./interface";
+import type { VectorStore, SearchCandidateOptions } from "./interface";
 import type { DocumentMeta, VectorDocument } from "./types";
 
 const VECTOR_STORE_PATH = config.vectorStore.jsonPath;
@@ -48,6 +48,10 @@ export class JsonVectorStore implements VectorStore {
     return all.filter((doc) =>
       canAccessDocument(userRole, doc.metadata.role || "general")
     );
+  }
+
+  async fetchSearchCandidates(options: SearchCandidateOptions): Promise<VectorDocument[]> {
+    return this.getAccessibleDocuments(options.userRole);
   }
 
   async count(): Promise<number> {

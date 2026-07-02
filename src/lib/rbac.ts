@@ -27,6 +27,13 @@ export function hasMinimumRole(
   return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[minimum];
 }
 
+/** SQL/ANN 검색용 — 사용자가 열람 가능한 document role 목록 */
+export function getAccessibleRoles(userRole: UserRole): UserRole[] {
+  if (userRole === "admin") return ["general", "manager", "admin"];
+  if (userRole === "manager") return ["general", "manager"];
+  return ["general"];
+}
+
 /** 업로드 권한: manager 이상 */
 export function canUploadDocuments(userRole: UserRole): boolean {
   return hasMinimumRole(userRole, "manager");

@@ -11,6 +11,7 @@ import { HelpPanel } from "@/components/help-panel";
 import { OnboardingBanner } from "@/components/onboarding-banner";
 import { QuickStartPrompts } from "@/components/quick-start-prompts";
 import type { UserRole } from "@/lib/rbac";
+import { extractMessageText } from "@/lib/chat/messages";
 
 const ROLE_LABELS: Record<UserRole, string> = {
   general: "일반",
@@ -19,10 +20,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 function getMessageText(message: UIMessage): string {
-  return message.parts
-    .filter((part) => part.type === "text")
-    .map((part) => part.text)
-    .join("");
+  return extractMessageText(message) ?? "";
 }
 
 export default function Chat() {
