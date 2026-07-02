@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "test:security-harness": "vitest run .ax/harnesses/security.test.tsx --environment jsdom",
     "db:init": "tsx scripts/init-db.ts",
-    "db:migrate": "tsx scripts/migrate-to-pgvector.ts"
+    "db:migrate": "tsx scripts/migrate-to-pgvector.ts",
+    "eval:search": "tsx scripts/eval-search.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.79",

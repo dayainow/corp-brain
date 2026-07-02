@@ -27,11 +27,20 @@ interface DocInfo {
   size: number;
 }
 
+interface SearchMetrics {
+  hitAt1: number;
+  hitAt3: number;
+  mrr: number;
+  queryCount: number;
+  targetHitAt3: number;
+}
+
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const [logs, setLogs] = useState<AuditEntry[]>([]);
   const [docs, setDocs] = useState<DocInfo[]>([]);
   const [stats, setStats] = useState<DocStats | null>(null);
+  const [searchMetrics, setSearchMetrics] = useState<SearchMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,11 +50,13 @@ export default function AdminPage() {
     Promise.all([
       fetch("/api/admin/audit?limit=50").then((r) => r.json()),
       fetch("/api/admin/documents").then((r) => r.json()),
+      fetch("/api/admin/metrics").then((r) => r.json()),
     ])
-      .then(([auditData, docData]) => {
+      .then(([auditData, docData, metricsData]) => {
         setLogs(auditData.logs ?? []);
         setDocs(docData.documents ?? []);
         setStats(docData.stats ?? null);
+        setSearchMetrics(metricsData.metrics ?? null);
       })
       .finally(() => setLoading(false));
   }, [session, status]);
@@ -97,6 +108,26 @@ export default function AdminPage() {
             <StatCard icon={<Shield className="w-5 h-5" />} label="Admin 문서" value={stats.byRole.admin ?? 0} />
             <StatCard icon={<Activity className="w-5 h-5" />} label="감사 로그" value={logs.length} />
           </div>
+        )}
+
+        {searchMetrics && (
+          <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5">
+            <h2 className="font-semibold mb-3">검색 품질 메트릭 (Re-ranking 적용)</h2>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-blue-600">{(searchMetrics.hitAt3 * 100).toFixed(0)}%</div>
+                <div className="text-xs text-slate-500">Hit@3 (목표 80%)</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{(searchMetrics.hitAt1 * 100).toFixed(0)}%</div>
+                <div className="text-xs text-slate-500">Hit@1</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{searchMetrics.mrr.toFixed(2)}</div>
+                <div className="text-xs text-slate-500">MRR</div>
+              </div>
+            </div>
+          </section>
         )}
 
         <div className="grid md:grid-cols-2 gap-6">

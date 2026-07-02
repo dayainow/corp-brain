@@ -1,5 +1,6 @@
 import type { UserRole } from "@/lib/rbac";
 import { config } from "@/lib/config";
+import { rerankCandidates } from "@/lib/search/reranker";
 import { JsonVectorStore } from "./json-store";
 import { PgVectorStore } from "./pgvector-store";
 import type { VectorStore } from "./interface";
@@ -79,7 +80,14 @@ export async function hybridSearch(
   }));
   rrfScores.sort((a, b) => b.score - a.score);
 
-  return rrfScores.slice(0, topK).map((item) => item.document);
+  const candidateCount = Math.min(topK * 4, rrfScores.length);
+  const candidates = rrfScores.slice(0, candidateCount).map((item) => ({
+    document: item.document,
+    rrfScore: item.score,
+  }));
+
+  const reranked = rerankCandidates(query, candidates, topK);
+  return reranked.map((item) => item.document);
 }
 
 export async function saveVectors(docs: import("./types").VectorDocument[]): Promise<void> {
