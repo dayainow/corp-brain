@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import { canAccessDocument, type UserRole } from "@/lib/rbac";
+import { config } from "@/lib/config";
 
 export interface VectorDocument {
   id: string; // e.g. chunk ID
@@ -11,7 +13,7 @@ export interface VectorDocument {
   embedding: number[];
 }
 
-const VECTOR_STORE_PATH = path.join(process.cwd(), "src", "data", "vectors.json");
+const VECTOR_STORE_PATH = config.vectorStore.jsonPath;
 
 // Read all vectors from the local JSON file
 export async function loadVectors(): Promise<VectorDocument[]> {
@@ -99,12 +101,10 @@ export async function hybridSearch(query: string, queryEmbedding: number[], topK
   let vectors = await loadVectors();
   if (vectors.length === 0) return [];
 
-  // RBAC Filtering: Admin sees all. Others see 'general' and their specific role.
-  vectors = vectors.filter(doc => {
-    const docRole = doc.metadata.role || 'general';
-    if (userRole === 'admin') return true;
-    return docRole === 'general' || docRole === userRole;
-  });
+  const role = userRole as UserRole;
+  vectors = vectors.filter((doc) =>
+    canAccessDocument(role, doc.metadata.role || "general")
+  );
 
   if (vectors.length === 0) return [];
 

@@ -1,0 +1,53 @@
+import fs from "fs";
+import path from "path";
+import { config } from "@/lib/config";
+
+export type AuditAction =
+  | "auth.login"
+  | "auth.logout"
+  | "chat.query"
+  | "index.sync"
+  | "document.upload"
+  | "document.delete";
+
+export interface AuditEntry {
+  timestamp: string;
+  action: AuditAction;
+  userId: string;
+  userEmail: string;
+  userRole: string;
+  detail?: Record<string, unknown>;
+  ip?: string;
+}
+
+async function ensureLogDir(): Promise<void> {
+  const dir = path.dirname(config.audit.logPath);
+  if (!fs.existsSync(dir)) {
+    await fs.promises.mkdir(dir, { recursive: true });
+  }
+}
+
+export async function writeAuditLog(entry: Omit<AuditEntry, "timestamp">): Promise<void> {
+  try {
+    await ensureLogDir();
+    const line: AuditEntry = {
+      ...entry,
+      timestamp: new Date().toISOString(),
+    };
+    await fs.promises.appendFile(
+      config.audit.logPath,
+      JSON.stringify(line) + "\n",
+      "utf-8"
+    );
+  } catch (error) {
+    console.error("Audit log write failed:", error);
+  }
+}
+
+export function getClientIp(req: Request): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown"
+  );
+}
