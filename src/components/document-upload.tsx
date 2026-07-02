@@ -77,12 +77,12 @@ export function DocumentUpload({ userRole, onUploadComplete }: DocumentUploadPro
             <form onSubmit={handleUpload} className="space-y-4">
               <div>
                 <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">
-                  마크다운 파일 (.md, 최대 2MB)
+                  문서 파일 (.md, .pdf, .docx · 최대 5MB)
                 </label>
                 <input
                   ref={fileRef}
                   type="file"
-                  accept=".md,.markdown"
+                  accept=".md,.markdown,.pdf,.docx"
                   required
                   className="w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900 dark:file:text-blue-300"
                 />
@@ -120,7 +120,7 @@ export function DocumentUpload({ userRole, onUploadComplete }: DocumentUploadPro
             </form>
 
             <p className="mt-3 text-xs text-slate-400">
-              업로드 후 Admin이 Sync Vault를 실행하면 검색에 반영됩니다.
+              업로드 즉시 자동 인덱싱됩니다. PDF·DOCX도 지원합니다.
             </p>
           </div>
         </div>

@@ -3,16 +3,26 @@ import path from "path";
 import { generateEmbedding } from "../embeddings";
 import { getVectorStore } from "../vector-store";
 import type { VectorDocument } from "../vector-store/types";
+import { extractDocumentText, isSupportedExtension } from "../parsers";
 
-async function getMarkdownFiles(dir: string): Promise<string[]> {
+const META_SUFFIX = ".meta.json";
+
+interface FileMeta {
+  role: string;
+  title?: string;
+  uploadedBy?: string;
+  fileType?: string;
+}
+
+async function getVaultFiles(dir: string): Promise<string[]> {
   let results: string[] = [];
   const list = await fs.promises.readdir(dir);
   for (const file of list) {
     const filePath = path.resolve(dir, file);
     const stat = await fs.promises.stat(filePath);
     if (stat.isDirectory() && !file.startsWith(".")) {
-      results = results.concat(await getMarkdownFiles(filePath));
-    } else if (file.endsWith(".md")) {
+      results = results.concat(await getVaultFiles(filePath));
+    } else if (isSupportedExtension(path.extname(file).toLowerCase())) {
       results.push(filePath);
     }
   }
@@ -44,6 +54,18 @@ export function parseContent(content: string): { role: string; title: string; te
 }
 
 export function chunkText(text: string, maxChars: number = 1000): string[] {
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+
+  // PDF/DOCX 등 헤더 없는 plain text: 길이 기반 분할
+  if (!/^#+\s+/m.test(trimmed)) {
+    const chunks: string[] = [];
+    for (let i = 0; i < trimmed.length; i += maxChars) {
+      chunks.push(trimmed.slice(i, i + maxChars));
+    }
+    return chunks;
+  }
+
   const chunks: string[] = [];
   const lines = text.split("\n");
   let currentHeader = "";
@@ -68,32 +90,66 @@ export function chunkText(text: string, maxChars: number = 1000): string[] {
   if (currentChunk.trim().length > 0) {
     chunks.push(currentHeader ? `${currentHeader}\n${currentChunk.trim()}` : currentChunk.trim());
   }
+
   return chunks;
+}
+
+async function readFileMeta(filePath: string): Promise<FileMeta | null> {
+  const metaPath = filePath + META_SUFFIX;
+  if (!fs.existsSync(metaPath)) return null;
+  try {
+    return JSON.parse(await fs.promises.readFile(metaPath, "utf-8")) as FileMeta;
+  } catch {
+    return null;
+  }
+}
+
+export async function writeFileMeta(filePath: string, meta: FileMeta): Promise<void> {
+  await fs.promises.writeFile(filePath + META_SUFFIX, JSON.stringify(meta, null, 2), "utf-8");
 }
 
 async function processFile(
   file: string,
-  vaultPath: string
+  vaultPath: string,
+  overrideRole?: string
 ): Promise<VectorDocument[]> {
-  const rawContent = await fs.promises.readFile(file, "utf-8");
-  const { role, title, text } = parseContent(rawContent);
+  const fileName = path.basename(file);
+  const ext = path.extname(file).toLowerCase();
+  const sidecar = await readFileMeta(file);
+
+  let role = overrideRole ?? sidecar?.role ?? "general";
+  let title = sidecar?.title ?? fileName;
+  let text = "";
+
+  if (ext === ".md" || ext === ".markdown") {
+    const rawContent = await fs.promises.readFile(file, "utf-8");
+    const parsed = parseContent(rawContent);
+    role = overrideRole ?? parsed.role;
+    title = parsed.title || title;
+    text = parsed.text;
+  } else {
+    const extracted = await extractDocumentText(file);
+    title = extracted.title || title;
+    text = extracted.text;
+  }
+
   const chunks = chunkText(text);
   const vectorDocs: VectorDocument[] = [];
-  const fileName = path.basename(file);
 
   for (let i = 0; i < chunks.length; i++) {
-    const chunkText_ = chunks[i];
-    if (chunkText_.length < 10) continue;
+    const chunk = chunks[i];
+    if (chunk.length < 10) continue;
 
-    const embedding = await generateEmbedding(chunkText_);
+    const embedding = await generateEmbedding(chunk);
     vectorDocs.push({
       id: `${fileName}-chunk-${i}`,
-      text: chunkText_,
+      text: chunk,
       metadata: {
         source: file.replace(vaultPath, ""),
         fileName,
         role,
         title,
+        fileType: ext.replace(".", ""),
       },
       embedding,
     });
@@ -105,10 +161,10 @@ async function processFile(
 export async function indexSingleFile(
   filePath: string,
   vaultPath: string,
-  uploadedBy?: string
+  options?: { uploadedBy?: string; docRole?: string }
 ): Promise<{ chunks: number; fileName: string }> {
   const store = getVectorStore();
-  const docs = await processFile(filePath, vaultPath);
+  const docs = await processFile(filePath, vaultPath, options?.docRole);
   const fileName = path.basename(filePath);
 
   await store.deleteByFileName(fileName);
@@ -117,9 +173,9 @@ export async function indexSingleFile(
     id: `doc-${fileName}`,
     fileName,
     source: filePath.replace(vaultPath, ""),
-    role: (docs[0]?.metadata.role as string) || "general",
+    role: (docs[0]?.metadata.role as string) || options?.docRole || "general",
     title: (docs[0]?.metadata.title as string) || fileName,
-    uploadedBy,
+    uploadedBy: options?.uploadedBy,
   });
 
   return { chunks: docs.length, fileName };
@@ -128,11 +184,11 @@ export async function indexSingleFile(
 /** Vault 전체 재인덱싱 */
 export async function runIndexing(vaultPath: string) {
   console.log(`Starting indexing from vault: ${vaultPath}`);
-  const mdFiles = await getMarkdownFiles(vaultPath);
-  console.log(`Found ${mdFiles.length} markdown files.`);
+  const files = await getVaultFiles(vaultPath);
+  console.log(`Found ${files.length} documents.`);
 
   const vectorDocs: VectorDocument[] = [];
-  for (const file of mdFiles) {
+  for (const file of files) {
     try {
       const docs = await processFile(file, vaultPath);
       vectorDocs.push(...docs);
@@ -145,7 +201,7 @@ export async function runIndexing(vaultPath: string) {
   const store = getVectorStore();
   await store.saveAll(vectorDocs);
 
-  for (const file of mdFiles) {
+  for (const file of files) {
     const fileName = path.basename(file);
     const fileDocs = vectorDocs.filter((d) => d.metadata.fileName === fileName);
     if (fileDocs.length > 0) {
@@ -160,5 +216,5 @@ export async function runIndexing(vaultPath: string) {
   }
 
   console.log(`Indexing complete! Indexed ${vectorDocs.length} chunks.`);
-  return { files: mdFiles.length, chunks: vectorDocs.length };
+  return { files: files.length, chunks: vectorDocs.length };
 }

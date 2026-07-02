@@ -4,11 +4,11 @@ import path from "path";
 import { requireAuth } from "@/lib/auth/guard";
 import { canUploadDocuments } from "@/lib/rbac";
 import { getVaultPath } from "@/lib/config";
-import { indexSingleFile } from "@/lib/indexer";
+import { indexSingleFile, writeFileMeta } from "@/lib/indexer";
 import { writeAuditLog, getClientIp } from "@/lib/audit";
+import { isSupportedExtension, getFileType } from "@/lib/parsers";
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-const ALLOWED_EXTENSIONS = [".md", ".markdown"];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB (PDF/DOCX 대응)
 
 export async function POST(req: Request) {
   const { error, session } = await requireAuth();
@@ -31,16 +31,16 @@ export async function POST(req: Request) {
     }
 
     const ext = path.extname(file.name).toLowerCase();
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    if (!isSupportedExtension(ext)) {
       return NextResponse.json(
-        { error: "마크다운(.md) 파일만 업로드할 수 있습니다." },
+        { error: "지원 형식: .md, .pdf, .docx" },
         { status: 400 }
       );
     }
 
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: "파일 크기는 2MB 이하여야 합니다." },
+        { error: "파일 크기는 5MB 이하여야 합니다." },
         { status: 400 }
       );
     }
@@ -55,33 +55,49 @@ export async function POST(req: Request) {
     const timestamp = Date.now();
     const destPath = path.join(uploadsDir, `${timestamp}_${safeName}`);
 
-    let content = await file.text();
+    const buffer = Buffer.from(await file.arrayBuffer());
+    await fs.promises.writeFile(destPath, buffer);
 
-    // Frontmatter에 role이 없으면 업로드 시 지정한 role 삽입
-    if (!content.startsWith("---")) {
-      content = `---\nrole: ${docRole}\n---\n\n${content}`;
+    const fileType = getFileType(ext);
+
+    if (fileType === "markdown") {
+      let content = buffer.toString("utf-8");
+      if (!content.startsWith("---")) {
+        content = `---\nrole: ${docRole}\n---\n\n${content}`;
+        await fs.promises.writeFile(destPath, content, "utf-8");
+      }
+    } else {
+      await writeFileMeta(destPath, {
+        role: docRole,
+        title: safeName.replace(/\.[^.]+$/, ""),
+        uploadedBy: session!.user.email,
+        fileType,
+      });
     }
 
-    await fs.promises.writeFile(destPath, content, "utf-8");
-
-    const indexResult = await indexSingleFile(
-      destPath,
-      vaultPath,
-      session!.user.email
-    );
+    const indexResult = await indexSingleFile(destPath, vaultPath, {
+      uploadedBy: session!.user.email,
+      docRole,
+    });
 
     await writeAuditLog({
       action: "document.upload",
       userId: session!.user.id,
       userEmail: session!.user.email,
       userRole: session!.user.role,
-      detail: { fileName: safeName, docRole, path: destPath, chunks: indexResult.chunks },
+      detail: {
+        fileName: safeName,
+        docRole,
+        fileType,
+        path: destPath,
+        chunks: indexResult.chunks,
+      },
       ip: getClientIp(req),
     });
 
     return NextResponse.json({
       success: true,
-      file: { name: safeName, path: destPath, role: docRole },
+      file: { name: safeName, path: destPath, role: docRole, fileType },
       index: indexResult,
       message: `업로드 및 인덱싱 완료 (${indexResult.chunks}개 청크)`,
     });
@@ -104,11 +120,14 @@ export async function GET() {
     }
 
     const files = await fs.promises.readdir(uploadsDir);
-    const mdFiles = files.filter((f) => f.endsWith(".md"));
+    const docFiles = files.filter((f) =>
+      isSupportedExtension(path.extname(f).toLowerCase())
+    );
 
     return NextResponse.json({
-      files: mdFiles.map((name) => ({
+      files: docFiles.map((name) => ({
         name,
+        fileType: getFileType(path.extname(name).toLowerCase()),
         uploadedAt: name.split("_")[0],
       })),
       canUpload: canUploadDocuments(session!.user.role),
