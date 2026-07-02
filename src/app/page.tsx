@@ -202,9 +202,9 @@ export default function Chat() {
           userRole={userRole}
           mobileOpen={treeOpen}
           onMobileClose={() => setTreeOpen(false)}
-          onSelectDocument={({ title, fileName }) => {
+          onSelectDocument={({ title }) => {
             sendMessage({
-              text: `「${title}」(${fileName}) 문서의 주요 내용을 알려줘`,
+              text: `「${title}」 문서의 주요 내용을 알려줘`,
             });
           }}
         />

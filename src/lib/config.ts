@@ -26,6 +26,9 @@ export const config = {
   audit: {
     logPath: resolvePath("data/audit.log"),
   },
+  redis: {
+    url: process.env.REDIS_URL,
+  },
   company: {
     name: "NovaPay",
     fullName: "주식회사 노바페이",

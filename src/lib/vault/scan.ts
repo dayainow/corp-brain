@@ -5,6 +5,7 @@ import { parseContent } from "@/lib/indexer";
 import { isDocumentExpired } from "@/lib/audit/siem";
 import { canAccessDocument, isValidUserRole, type UserRole } from "@/lib/rbac";
 import { isSupportedExtension } from "@/lib/parsers";
+import { shouldSkipVaultFile } from "./skip";
 import type { VaultDocumentInfo } from "./types";
 
 const META_SUFFIX = ".meta.json";
@@ -62,7 +63,7 @@ async function scanDir(
     }
 
     if (!isSupportedExtension(path.extname(entry.name).toLowerCase())) continue;
-    if (entry.name.toLowerCase() === "readme.md") continue;
+    if (shouldSkipVaultFile(entry.name)) continue;
 
     const stat = await fs.promises.stat(fullPath);
     const relativePath = fullPath.replace(vaultPath, "").replace(/\\/g, "/");

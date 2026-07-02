@@ -4,6 +4,7 @@ import { generateEmbedding } from "../embeddings";
 import { getVectorStore } from "../vector-store";
 import type { VectorDocument } from "../vector-store/types";
 import { extractDocumentText, isSupportedExtension } from "../parsers";
+import { shouldSkipVaultFile } from "../vault/skip";
 import {
   hashFile,
   isManifestEntryCurrent,
@@ -31,7 +32,9 @@ async function getVaultFiles(dir: string): Promise<string[]> {
     if (stat.isDirectory() && !file.startsWith(".")) {
       results = results.concat(await getVaultFiles(filePath));
     } else if (isSupportedExtension(path.extname(file).toLowerCase())) {
-      results.push(filePath);
+      if (!shouldSkipVaultFile(path.basename(file))) {
+        results.push(filePath);
+      }
     }
   }
   return results;

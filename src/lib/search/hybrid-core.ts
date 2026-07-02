@@ -2,6 +2,12 @@ import type { VectorDocument } from "@/lib/vector-store/types";
 
 const RRF_K = 60;
 
+function documentSearchText(doc: VectorDocument): string {
+  const fileName = String(doc.metadata.fileName ?? "");
+  const title = String(doc.metadata.title ?? "");
+  return `${fileName} ${title} ${doc.text}`;
+}
+
 export function cosineSimilarity(vecA: number[], vecB: number[]): number {
   let dot = 0;
   let normA = 0;
@@ -49,7 +55,7 @@ export function reciprocalRankFusion(
 
   const kwScores = vectors.map((doc, index) => ({
     index,
-    score: keywordScore(query, doc.text),
+    score: keywordScore(query, documentSearchText(doc)),
   }));
   kwScores.sort((a, b) => b.score - a.score);
   const kwRanks = new Array(vectors.length).fill(0);

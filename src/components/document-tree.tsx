@@ -46,27 +46,40 @@ function TreeNode({
 }) {
   if (node.type === "file") {
     const label = node.title ?? node.name;
+    const fileName = node.fileName ?? node.name;
+    const fileType = (node.fileType ?? "").toLowerCase();
+    const typeBadge =
+      fileType === "pdf" ? "PDF" : fileType === "docx" ? "DOCX" : null;
+
     return (
       <button
         type="button"
         onClick={() =>
           onSelectDocument({
             title: label,
-            fileName: node.fileName ?? node.name,
+            fileName,
           })
         }
         className="w-full flex items-start gap-2 px-2 py-1.5 rounded-md text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-700 dark:hover:text-blue-300 transition-colors group min-w-0"
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
-        title={`${label} — 클릭하면 이 문서에 대해 질문합니다`}
+        title={`${label}\n파일: ${fileName}\n클릭하면 이 문서에 대해 질문합니다`}
+        aria-label={`${label}, 파일 ${fileName}`}
       >
         <FileText className="w-4 h-4 mt-0.5 shrink-0 text-slate-400 group-hover:text-blue-500" />
         <span className="flex-1 min-w-0">
           <span className="block truncate">{label}</span>
-          {node.role && node.role !== "general" && (
-            <span className="text-[10px] px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
-              {ROLE_BADGE[node.role]}
-            </span>
-          )}
+          <span className="flex flex-wrap items-center gap-1 mt-0.5">
+            {node.role && node.role !== "general" && (
+              <span className="text-[10px] px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
+                {ROLE_BADGE[node.role]}
+              </span>
+            )}
+            {typeBadge && (
+              <span className="text-[10px] px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                {typeBadge}
+              </span>
+            )}
+          </span>
         </span>
       </button>
     );

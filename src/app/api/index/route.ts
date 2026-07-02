@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const indexRate = checkRateLimit(`index:${session!.user.id}`, {
+  const indexRate = await checkRateLimit(`index:${session!.user.id}`, {
     windowMs: 60 * 60 * 1000,
     maxRequests: 2,
   });

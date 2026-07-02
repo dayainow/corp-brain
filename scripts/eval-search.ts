@@ -40,7 +40,7 @@ async function main() {
   console.log(`Hit@3: ${(agg.hitAt3 * 100).toFixed(1)}%`);
   console.log(`MRR:   ${agg.mrr.toFixed(3)}`);
 
-  const threshold = Number(process.env.EVAL_HIT3_THRESHOLD ?? "0.5");
+  const threshold = Number(process.env.EVAL_HIT3_THRESHOLD ?? "0.8");
   if (agg.hitAt3 < threshold) {
     console.error(`\nFAIL: Hit@3 ${(agg.hitAt3 * 100).toFixed(1)}% < ${(threshold * 100).toFixed(0)}%`);
     process.exit(1);

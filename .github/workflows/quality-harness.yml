@@ -33,4 +33,4 @@ jobs:
 
       - run: npm run eval:search
         env:
-          EVAL_HIT3_THRESHOLD: "0.5"
+          EVAL_HIT3_THRESHOLD: "0.8"

@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   const userRole = session!.user.role;
 
   const rateKey = `chat:${session!.user.id}`;
-  const rate = checkRateLimit(rateKey, { windowMs: 60_000, maxRequests: 20 });
+  const rate = await checkRateLimit(rateKey, { windowMs: 60_000, maxRequests: 20 });
   if (!rate.allowed) {
     return denyRateLimit(rate.resetAt);
   }

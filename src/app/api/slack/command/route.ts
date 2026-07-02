@@ -54,7 +54,7 @@ export async function POST(req: Request) {
   const userId = params.get("user_id") ?? "slack-user";
   const userName = params.get("user_name") ?? "slack";
 
-  const slackRate = checkRateLimit(`slack:${userId}`, {
+  const slackRate = await checkRateLimit(`slack:${userId}`, {
     windowMs: 60_000,
     maxRequests: 30,
   });

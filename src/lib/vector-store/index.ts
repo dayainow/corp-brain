@@ -2,6 +2,7 @@ import type { UserRole } from "@/lib/rbac";
 import { isDocumentExpired } from "@/lib/audit/siem";
 import { reciprocalRankFusion } from "@/lib/search/hybrid-core";
 import { rerankCandidates } from "@/lib/search/reranker";
+import { diversifyByFile } from "@/lib/search/file-diversity";
 import { config } from "@/lib/config";
 import { JsonVectorStore } from "./json-store";
 import { PgVectorStore } from "./pgvector-store";
@@ -50,9 +51,9 @@ export async function hybridSearch(
       document: item.document,
       rrfScore: item.score,
     })),
-    topK
+    candidateLimit
   );
-  return reranked.map((item) => item.document);
+  return diversifyByFile(reranked, topK).map((item) => item.document);
 }
 
 export async function saveVectors(docs: import("./types").VectorDocument[]): Promise<void> {

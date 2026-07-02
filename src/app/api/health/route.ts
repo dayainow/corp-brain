@@ -3,6 +3,7 @@ import fs from "fs";
 import { getVectorStore } from "@/lib/vector-store";
 import { config, getVaultPath } from "@/lib/config";
 import { isPgAvailable } from "@/lib/db/client";
+import { pingRedis } from "@/lib/rate-limit/redis";
 
 async function checkOllama(): Promise<{ ok: boolean; error?: string }> {
   try {
@@ -63,6 +64,14 @@ export async function GET() {
   if (!ollama.ok) {
     checks.status = "degraded";
     checks.ollamaError = ollama.error;
+  }
+
+  if (config.redis.url) {
+    const redisOk = await pingRedis();
+    nested.redis = redisOk ? "ok" : "error";
+    if (!redisOk) checks.status = "degraded";
+  } else {
+    nested.redis = "not_configured";
   }
 
   const criticalFailure =
