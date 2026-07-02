@@ -1,5 +1,6 @@
 import type { UserRole } from "@/lib/rbac";
 import { config } from "@/lib/config";
+import { isDocumentExpired } from "@/lib/audit/siem";
 import { rerankCandidates } from "@/lib/search/reranker";
 import { JsonVectorStore } from "./json-store";
 import { PgVectorStore } from "./pgvector-store";
@@ -54,7 +55,8 @@ export async function hybridSearch(
   userRole: string = "general"
 ): Promise<import("./types").VectorDocument[]> {
   const store = getVectorStore();
-  const vectors = await store.getAccessibleDocuments(userRole as UserRole);
+  const vectors = (await store.getAccessibleDocuments(userRole as UserRole))
+    .filter((doc) => !isDocumentExpired(doc.metadata));
   if (vectors.length === 0) return [];
 
   const vecScores = vectors.map((doc, index) => ({

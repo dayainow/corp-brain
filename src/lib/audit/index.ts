@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { config } from "@/lib/config";
+import { exportToSiem } from "./siem";
 
 export type AuditAction =
   | "auth.login"
@@ -39,6 +40,7 @@ export async function writeAuditLog(entry: Omit<AuditEntry, "timestamp">): Promi
       JSON.stringify(line) + "\n",
       "utf-8"
     );
+    await exportToSiem(line);
   } catch (error) {
     console.error("Audit log write failed:", error);
   }

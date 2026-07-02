@@ -12,6 +12,7 @@ interface FileMeta {
   title?: string;
   uploadedBy?: string;
   fileType?: string;
+  expires?: string;
 }
 
 async function getVaultFiles(dir: string): Promise<string[]> {
@@ -29,19 +30,22 @@ async function getVaultFiles(dir: string): Promise<string[]> {
   return results;
 }
 
-export function parseContent(content: string): { role: string; title: string; text: string } {
+export function parseContent(content: string): { role: string; title: string; text: string; expires?: string } {
   const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
   const match = content.match(frontmatterRegex);
   let role = "general";
   let title = "";
   let text = content;
+  let expires: string | undefined;
 
   if (match) {
     const fm = match[1];
     const roleMatch = fm.match(/role:\s*([a-zA-Z0-9_-]+)/i);
     const titleMatch = fm.match(/title:\s*(.+)/i);
+    const expiresMatch = fm.match(/expires:\s*(\d{4}-\d{2}-\d{2})/i);
     if (roleMatch) role = roleMatch[1].toLowerCase();
     if (titleMatch) title = titleMatch[1].trim();
+    if (expiresMatch) expires = expiresMatch[1];
     text = content.slice(match[0].length);
   }
 
@@ -50,7 +54,7 @@ export function parseContent(content: string): { role: string; title: string; te
     if (h1) title = h1[1].trim();
   }
 
-  return { role, title, text };
+  return { role, title, text, expires };
 }
 
 export function chunkText(text: string, maxChars: number = 1000): string[] {
@@ -119,6 +123,7 @@ async function processFile(
 
   let role = overrideRole ?? sidecar?.role ?? "general";
   let title = sidecar?.title ?? fileName;
+  let expires: string | undefined = sidecar?.expires as string | undefined;
   let text = "";
 
   if (ext === ".md" || ext === ".markdown") {
@@ -126,6 +131,7 @@ async function processFile(
     const parsed = parseContent(rawContent);
     role = overrideRole ?? parsed.role;
     title = parsed.title || title;
+    expires = parsed.expires;
     text = parsed.text;
   } else {
     const extracted = await extractDocumentText(file);
@@ -150,6 +156,7 @@ async function processFile(
         role,
         title,
         fileType: ext.replace(".", ""),
+        ...(expires ? { expires } : {}),
       },
       embedding,
     });
