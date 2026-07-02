@@ -10,11 +10,31 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./src/lib/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U corpbrain"]
       interval: 5s
       timeout: 5s
       retries: 5
+
+  app:
+    build: .
+    container_name: corpbrain-app
+    ports:
+      - "3000:3000"
+    environment:
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-in-production-32chars}
+      AUTH_URL: http://localhost:3000
+      VAULT_PATH: ./sample-docs
+      VECTOR_STORE: pgvector
+      DATABASE_URL: postgresql://corpbrain:corpbrain@postgres:5432/corpbrain
+      OLLAMA_BASE_URL: http://host.docker.internal:11434/v1
+      OLLAMA_MODEL: llama3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   pgdata:

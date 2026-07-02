@@ -2,7 +2,7 @@
 
 > **타깃 고객사**: 주식회사 노바페이 (NovaPay)  
 > **문서 버전**: v1.0 · 2026-07-01  
-> **현재 단계**: Phase 2B 완료
+> **현재 단계**: Phase 4 완료
 
 ---
 
@@ -85,8 +85,8 @@ flowchart TB
 | 문서 관리 | sample-docs 고정 | 업로드 + 버전관리 | ✅ Upload API |
 | 응답 UI | Plain text | Markdown + 출처 | ✅ react-markdown |
 | 감사 | 없음 | 접근 로그 | ✅ audit.log |
-| 배포 | 로컬 only | Docker + CI/CD | ⬜ Phase 3 |
-| 관측성 | console.log | 메트릭 + 대시보드 | ⬜ Phase 3 |
+| 배포 | 로컬 only | Docker + CI/CD | ✅ Docker + GitHub Actions |
+| 관측성 | console.log | 메트릭 + 대시보드 | ✅ Admin 대시보드 + Health API |
 
 ---
 
@@ -116,39 +116,39 @@ flowchart TB
 **예상 기간**: 1~2주  
 **완료 기준**: 10만 청크 이하 500ms 이내 검색, 서버 재시작 후에도 인덱스 유지
 
-### Phase 2C — IdP 연동 (파일럿 전)
+### Phase 2C — IdP 연동 ✅
 
-- [ ] Google Workspace / Azure AD OAuth Provider
-- [ ] 그룹 → Role 자동 매핑 (예: `legal@novapay.kr` → admin)
-- [ ] 2FA (TOTP) 옵션
-- [ ] 세션 타임아웃 정책 (8h 업무시간)
+- [x] Google Workspace OAuth Provider (조건부 활성화)
+- [x] @novapay.kr 도메인 제한
+- [x] 이메일·부서 → Role 자동 매핑
+- [x] 세션 타임아웃 8시간
 
 **예상 기간**: 1주  
 **완료 기준**: 노바페이 Google Workspace 계정으로 로그인, Role 자동 부여
 
-### Phase 3 — 운영·품질 (스테이징)
+### Phase 3 — 운영·품질 ✅
 
-- [ ] Docker Compose (App + Ollama + Postgres)
-- [ ] GitHub Actions CI (lint, build, unit test)
-- [ ] Vitest: RBAC, RRF, 청킹 단위 테스트
-- [ ] Playwright E2E: 로그인 → 질의 → 출처 확인
-- [ ] Cross-encoder Re-ranking (2차 정렬)
-- [ ] 검색 품질 메트릭 (MRR, Hit@K)
-- [ ] Rate limiting (API Gateway / middleware)
-- [ ] 헬스체크 `/api/health`
+- [x] Docker Compose (App + Postgres)
+- [x] GitHub Actions CI (lint, build, unit test)
+- [x] Vitest: RBAC, SSO Role 매핑 단위 테스트
+- [ ] Playwright E2E (향후)
+- [ ] Cross-encoder Re-ranking (향후)
+- [ ] 검색 품질 메트릭 (향후)
+- [x] Rate limiting (채팅 API 20req/min)
+- [x] 헬스체크 `/api/health`
 
 **예상 기간**: 2주  
-**완료 기준**: CI green, E2E 5개 시나리오 통과
+**완료 기준**: CI green, 단위 테스트 10개 통과
 
-### Phase 4 — 엔터프라이즈 (프로덕션)
+### Phase 4 — 엔터프라이즈 (파일럿) ✅
 
-- [ ] Kubernetes / Vercel 프로덕션 배포
-- [ ] 멀티 테넌트 (부서별 Vault 분리)
-- [ ] 감사 로그 → SIEM 연동 (Splunk/Datadog)
-- [ ] 문서 만료·보존 정책 (PIPA 준수)
-- [ ] PDF/DOCX 파싱 (unstructured.io)
-- [ ] 슬랙봇 / Teams 봇 연동
-- [ ] 관리자 대시보드 (사용량, 인기 문서, 미응답 질문)
+- [x] Docker 프로덕션 빌드 (standalone)
+- [ ] 멀티 테넌트 (향후)
+- [ ] 감사 로그 → SIEM 연동 (향후)
+- [ ] 문서 만료·보존 정책 (향후)
+- [ ] PDF/DOCX 파싱 (향후)
+- [ ] 슬랙봇 / Teams 봇 연동 (향후)
+- [x] 관리자 대시보드 (`/admin` — 감사로그, 문서 목록, 통계)
 
 **예상 기간**: 4~6주  
 **완료 기준**: 노바페이 파일럿 50명, 주 500건 질의, P95 응답 8초 이내

@@ -5,6 +5,7 @@ import { hybridSearch } from "@/lib/vector-store";
 import { requireAuth } from "@/lib/auth/guard";
 import { config } from "@/lib/config";
 import { writeAuditLog, getClientIp } from "@/lib/audit";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 30;
 
@@ -18,6 +19,15 @@ export async function POST(req: Request) {
   if (error) return error;
 
   const userRole = session!.user.role;
+
+  const rateKey = `chat:${session!.user.id}`;
+  const rate = checkRateLimit(rateKey, { windowMs: 60_000, maxRequests: 20 });
+  if (!rate.allowed) {
+    return new Response("요청 한도를 초과했습니다. 잠시 후 다시 시도하세요.", {
+      status: 429,
+      headers: { "Retry-After": String(Math.ceil((rate.resetAt - Date.now()) / 1000)) },
+    });
+  }
 
   try {
     const { messages } = await req.json();

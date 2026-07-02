@@ -44,6 +44,20 @@ export async function writeAuditLog(entry: Omit<AuditEntry, "timestamp">): Promi
   }
 }
 
+export async function readAuditLogs(limit: number = 100): Promise<AuditEntry[]> {
+  try {
+    if (!fs.existsSync(config.audit.logPath)) return [];
+    const content = await fs.promises.readFile(config.audit.logPath, "utf-8");
+    const lines = content.trim().split("\n").filter(Boolean);
+    return lines
+      .slice(-limit)
+      .map((line) => JSON.parse(line) as AuditEntry)
+      .reverse();
+  } catch {
+    return [];
+  }
+}
+
 export function getClientIp(req: Request): string {
   return (
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??

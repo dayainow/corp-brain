@@ -139,7 +139,15 @@ export default function Chat() {
           </button>
 
           {isAdmin && (
-            <button
+            <>
+              <a
+                href="/admin"
+                className="flex items-center gap-1 px-2 sm:px-3 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-md text-sm transition-colors"
+              >
+                <ShieldAlert className="w-4 h-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </a>
+              <button
               onClick={handleIndex}
               disabled={isIndexing}
               className="flex items-center gap-1 px-2 sm:px-4 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-md text-sm transition-colors disabled:opacity-50"
@@ -147,6 +155,7 @@ export default function Chat() {
               {isIndexing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
               <span className="hidden sm:inline">{isIndexing ? "Indexing..." : "Sync Vault"}</span>
             </button>
+            </>
           )}
 
           <button
