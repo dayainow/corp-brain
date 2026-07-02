@@ -1,0 +1,77 @@
+[
+  {
+    "query": "우리 회사 휴가 규정이 어떻게 돼?",
+    "expectedFiles": ["연차휴가규정.md", "정보보안규정.md", "휴가신청서양식.md"],
+    "role": "general"
+  },
+  {
+    "query": "재택근무 정책 알려줘",
+    "expectedFiles": ["재택근무정책.md"],
+    "role": "general"
+  },
+  {
+    "query": "출장비 규정은?",
+    "expectedFiles": ["출장경비정책.md"],
+    "role": "general"
+  },
+  {
+    "query": "정보보안 기본 규정 요약",
+    "expectedFiles": ["정보보안규정.md"],
+    "role": "general"
+  },
+  {
+    "query": "IT 장비 신청 양식 어디 있어?",
+    "expectedFiles": ["공통양식.md"],
+    "role": "general"
+  },
+  {
+    "query": "인사 규정 핵심 내용",
+    "expectedFiles": ["인사규정.md"],
+    "role": "general"
+  },
+  {
+    "query": "Q2 실적 보고서 요약해줘",
+    "expectedFiles": ["2026-q2-마케팅실적.md"],
+    "role": "manager"
+  },
+  {
+    "query": "연간 실적 요약",
+    "expectedFiles": ["2026-연간실적요약.md"],
+    "role": "manager"
+  },
+  {
+    "query": "AWS 인보이스 금액이 얼마야?",
+    "expectedFiles": ["aws-2026-q2.md", "협력사청구서.md"],
+    "role": "manager"
+  },
+  {
+    "query": "경비 정산 양식",
+    "expectedFiles": ["경비정산양식.md"],
+    "role": "manager"
+  },
+  {
+    "query": "NDA 계약서 주요 조항",
+    "expectedFiles": ["표준nda.md", "파트너사nda.md"],
+    "role": "admin"
+  },
+  {
+    "query": "사무실 임대 계약 관련 문서",
+    "expectedFiles": ["사무실임대계약.md"],
+    "role": "admin"
+  },
+  {
+    "query": "신규 입사자 온보딩 절차",
+    "expectedFiles": ["온보딩안내.md"],
+    "role": "general"
+  },
+  {
+    "query": "장애 대응 메모 내용",
+    "expectedFiles": ["장애대응메모.md"],
+    "role": "manager"
+  },
+  {
+    "query": "타운홀 미팅 메모",
+    "expectedFiles": ["타운홀미팅메모.md"],
+    "role": "manager"
+  }
+]

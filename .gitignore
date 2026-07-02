@@ -37,7 +37,8 @@ yarn-error.log*
 !.env.example
 
 # audit & runtime data
-/data/
+/data/*
+!/data/eval-queries.json
 /src/data/vectors.json
 /data/index-manifest.json
 
