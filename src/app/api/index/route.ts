@@ -4,6 +4,8 @@ import { canReindexVault } from "@/lib/rbac";
 import { runIndexing } from "@/lib/indexer";
 import { getVaultPath } from "@/lib/config";
 import { writeAuditLog, getClientIp } from "@/lib/audit";
+import { checkRateLimit, denyRateLimit } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const { error, session } = await requireAuth();
@@ -14,6 +16,14 @@ export async function POST(req: Request) {
       { error: "Vault 동기화는 Admin 권한이 필요합니다." },
       { status: 403 }
     );
+  }
+
+  const indexRate = checkRateLimit(`index:${session!.user.id}`, {
+    windowMs: 60 * 60 * 1000,
+    maxRequests: 2,
+  });
+  if (!indexRate.allowed) {
+    return denyRateLimit(indexRate.resetAt);
   }
 
   try {
@@ -31,7 +41,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, result });
   } catch (error) {
-    console.error("Indexing failed:", error);
+    logError("index.api", { err: error, userId: session!.user.id, path: "/api/index" });
     return NextResponse.json({ error: "인덱싱에 실패했습니다." }, { status: 500 });
   }
 }

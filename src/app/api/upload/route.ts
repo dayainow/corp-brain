@@ -2,11 +2,14 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { requireAuth } from "@/lib/auth/guard";
-import { canUploadDocuments } from "@/lib/rbac";
+import { canUploadDocuments, canAssignDocumentRole, isValidUserRole } from "@/lib/rbac";
 import { getVaultPath } from "@/lib/config";
 import { indexSingleFile, writeFileMeta } from "@/lib/indexer";
 import { writeAuditLog, getClientIp } from "@/lib/audit";
 import { isSupportedExtension, getFileType } from "@/lib/parsers";
+import { checkRateLimit, denyRateLimit } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
+import type { UserRole } from "@/lib/rbac";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB (PDF/DOCX 대응)
 
@@ -21,10 +24,26 @@ export async function POST(req: Request) {
     );
   }
 
+  const uploadRate = checkRateLimit(`upload:${session!.user.id}`, {
+    windowMs: 60_000,
+    maxRequests: 10,
+  });
+  if (!uploadRate.allowed) {
+    return denyRateLimit(uploadRate.resetAt);
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    const docRole = (formData.get("role") as string) || "general";
+    const requestedRole = (formData.get("role") as string) || "general";
+    const docRole: UserRole = isValidUserRole(requestedRole) ? requestedRole : "general";
+
+    if (!canAssignDocumentRole(session!.user.role, docRole)) {
+      return NextResponse.json(
+        { error: "지정한 문서 권한을 부여할 수 없습니다." },
+        { status: 403 }
+      );
+    }
 
     if (!file) {
       return NextResponse.json({ error: "파일이 없습니다." }, { status: 400 });
@@ -102,7 +121,7 @@ export async function POST(req: Request) {
       message: `업로드 및 인덱싱 완료 (${indexResult.chunks}개 청크)`,
     });
   } catch (err) {
-    console.error("Upload failed:", err);
+    logError("upload.api", { err, userId: session!.user.id, path: "/api/upload" });
     return NextResponse.json({ error: "업로드에 실패했습니다." }, { status: 500 });
   }
 }

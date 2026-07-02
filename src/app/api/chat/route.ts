@@ -5,7 +5,9 @@ import { hybridSearch } from "@/lib/vector-store";
 import { requireAuth } from "@/lib/auth/guard";
 import { config } from "@/lib/config";
 import { writeAuditLog, getClientIp } from "@/lib/audit";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, denyRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+import { validateChatMessages } from "@/lib/chat/messages";
+import { logError } from "@/lib/logger";
 
 export const maxDuration = 30;
 
@@ -13,6 +15,13 @@ const ollama = createOpenAI({
   baseURL: config.ollama.baseURL,
   apiKey: config.ollama.apiKey,
 });
+
+function jsonError(message: string, status: number, code: string, extraHeaders?: Record<string, string>) {
+  return new Response(JSON.stringify({ error: message, code }), {
+    status,
+    headers: { "Content-Type": "application/json", ...extraHeaders },
+  });
+}
 
 export async function POST(req: Request) {
   const { error, session } = await requireAuth();
@@ -23,20 +32,17 @@ export async function POST(req: Request) {
   const rateKey = `chat:${session!.user.id}`;
   const rate = checkRateLimit(rateKey, { windowMs: 60_000, maxRequests: 20 });
   if (!rate.allowed) {
-    return new Response("요청 한도를 초과했습니다. 잠시 후 다시 시도하세요.", {
-      status: 429,
-      headers: { "Retry-After": String(Math.ceil((rate.resetAt - Date.now()) / 1000)) },
-    });
+    return denyRateLimit(rate.resetAt);
   }
 
   try {
-    const { messages } = await req.json();
-    const latestMessage = messages[messages.length - 1]?.content;
-
-    if (!latestMessage) {
-      return new Response("No message provided", { status: 400 });
+    const body = await req.json();
+    const validation = validateChatMessages(body?.messages);
+    if (!validation.ok) {
+      return jsonError(validation.error, 400, validation.code);
     }
 
+    const latestMessage = validation.text;
     const queryEmbedding = await generateEmbedding(latestMessage);
     const relevantDocs = await hybridSearch(
       latestMessage,
@@ -78,22 +84,30 @@ ${contextText}
     const result = streamText({
       model: ollama(config.ollama.model) as Parameters<typeof streamText>[0]["model"],
       system: systemPrompt,
-      messages,
+      messages: body.messages,
     });
 
     const stream = result as unknown as Record<string, (() => Response) | undefined>;
+    const rateHeaders = rateLimitHeaders(rate.remaining, rate.resetAt);
+
     if (typeof stream.toDataStreamResponse === "function") {
-      return stream.toDataStreamResponse();
+      const response = stream.toDataStreamResponse();
+      Object.entries(rateHeaders).forEach(([key, value]) => response.headers.set(key, value));
+      return response;
     }
     if (typeof stream.toUIMessageStreamResponse === "function") {
-      return stream.toUIMessageStreamResponse();
+      const response = stream.toUIMessageStreamResponse();
+      Object.entries(rateHeaders).forEach(([key, value]) => response.headers.set(key, value));
+      return response;
     }
     if (typeof result.toTextStreamResponse === "function") {
-      return result.toTextStreamResponse();
+      const response = result.toTextStreamResponse();
+      Object.entries(rateHeaders).forEach(([key, value]) => response.headers.set(key, value));
+      return response;
     }
     throw new Error("No suitable stream response method found.");
   } catch (err) {
-    console.error("Chat API error:", err);
-    return new Response("Error processing chat request", { status: 500 });
+    logError("chat.api", { err, userId: session!.user.id, path: "/api/chat" });
+    return jsonError("Error processing chat request", 500, "CHAT_ERROR");
   }
 }

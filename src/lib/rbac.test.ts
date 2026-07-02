@@ -3,6 +3,7 @@ import {
   canAccessDocument,
   canUploadDocuments,
   canReindexVault,
+  canAssignDocumentRole,
   hasMinimumRole,
 } from "@/lib/rbac";
 
@@ -40,5 +41,15 @@ describe("RBAC", () => {
   it("hasMinimumRole 계층 검증", () => {
     expect(hasMinimumRole("admin", "manager")).toBe(true);
     expect(hasMinimumRole("general", "manager")).toBe(false);
+  });
+
+  it("manager는 admin 문서 role 지정 불가", () => {
+    expect(canAssignDocumentRole("manager", "general")).toBe(true);
+    expect(canAssignDocumentRole("manager", "manager")).toBe(true);
+    expect(canAssignDocumentRole("manager", "admin")).toBe(false);
+  });
+
+  it("admin은 모든 문서 role 지정 가능", () => {
+    expect(canAssignDocumentRole("admin", "admin")).toBe(true);
   });
 });

@@ -24,7 +24,6 @@ function getMessageText(message: UIMessage): string {
 
 export default function Chat() {
   const { data: session, status: sessionStatus } = useSession();
-  const [initialLoaded, setInitialLoaded] = useState(false);
 
   const { messages, setMessages, status, sendMessage } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -50,7 +49,6 @@ export default function Chat() {
         }
       }
     }
-    setInitialLoaded(true);
   }, [setMessages]);
 
   useEffect(() => {
@@ -85,7 +83,7 @@ export default function Chat() {
     }
   };
 
-  if (sessionStatus === "loading" || !initialLoaded) return null;
+  if (sessionStatus === "loading") return null;
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 font-sans">
@@ -159,7 +157,14 @@ export default function Chat() {
           )}
 
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={async () => {
+              await fetch("/api/auth/audit", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "auth.logout" }),
+              });
+              signOut({ callbackUrl: "/login" });
+            }}
             className="flex items-center gap-1 px-2 sm:px-3 py-2 text-slate-500 hover:text-red-600 rounded-md text-sm transition-colors"
             title="로그아웃"
           >

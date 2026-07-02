@@ -11,7 +11,7 @@ test.describe("로그인", () => {
     await page.goto("/login");
     await page.getByPlaceholder("name@novapay.kr").fill("kim.junho@novapay.kr");
     await page.locator('input[type="password"]').fill("novapay2026");
-    await page.getByRole("button", { name: "로그인" }).click();
+    await page.getByRole("button", { name: "로그인", exact: true }).click();
     await page.waitForURL("/", { timeout: 10_000 });
     await expect(page.getByText("CorpBrain")).toBeVisible();
   });
@@ -20,7 +20,7 @@ test.describe("로그인", () => {
     await page.goto("/login");
     await page.getByPlaceholder("name@novapay.kr").fill("kim.junho@novapay.kr");
     await page.locator('input[type="password"]').fill("wrongpassword");
-    await page.getByRole("button", { name: "로그인" }).click();
+    await page.getByRole("button", { name: "로그인", exact: true }).click();
     await expect(page.getByText("이메일 또는 비밀번호가 올바르지 않습니다")).toBeVisible();
   });
 });

@@ -1,5 +1,7 @@
 export type UserRole = "general" | "manager" | "admin";
 
+const USER_ROLES: UserRole[] = ["general", "manager", "admin"];
+
 const ROLE_HIERARCHY: Record<UserRole, number> = {
   general: 1,
   manager: 2,
@@ -33,4 +35,21 @@ export function canUploadDocuments(userRole: UserRole): boolean {
 /** 인덱싱(전체 재동기화) 권한: admin만 */
 export function canReindexVault(userRole: UserRole): boolean {
   return userRole === "admin";
+}
+
+export function isValidUserRole(role: string): role is UserRole {
+  return USER_ROLES.includes(role as UserRole);
+}
+
+/** 업로드 시 문서 role 지정 권한 (manager는 admin 문서 지정 불가) */
+export function canAssignDocumentRole(
+  userRole: UserRole,
+  documentRole: UserRole
+): boolean {
+  if (!isValidUserRole(documentRole)) return false;
+  if (userRole === "admin") return true;
+  if (userRole === "manager") {
+    return documentRole === "general" || documentRole === "manager";
+  }
+  return false;
 }

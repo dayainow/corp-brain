@@ -6,7 +6,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: "list",
+  reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
     trace: "on-first-retry",
@@ -17,9 +17,9 @@ export default defineConfig({
   webServer: process.env.CI
     ? {
         command: "npm run build && npm run start",
-        url: "http://localhost:3000/login",
+        url: "http://localhost:3000/api/health",
         reuseExistingServer: false,
-        timeout: 120_000,
+        timeout: 180_000,
         env: {
           AUTH_SECRET: "e2e-test-secret-at-least-32-chars-long",
           AUTH_URL: "http://localhost:3000",

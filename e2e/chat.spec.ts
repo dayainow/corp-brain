@@ -5,7 +5,7 @@ test.describe("채팅 UI", () => {
     await page.goto("/login");
     await page.getByPlaceholder("name@novapay.kr").fill("lee.minho@novapay.kr");
     await page.locator('input[type="password"]').fill("novapay2026");
-    await page.getByRole("button", { name: "로그인" }).click();
+    await page.getByRole("button", { name: "로그인", exact: true }).click();
     await page.waitForURL("/");
   });
 

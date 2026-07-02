@@ -1,7 +1,7 @@
 import path from "path";
 
 function resolvePath(relative: string): string {
-  return path.join(process.cwd(), relative);
+  return path.join(/* turbopackIgnore: true */ process.cwd(), relative);
 }
 
 export const config = {
@@ -35,6 +35,6 @@ export const config = {
 
 export function getVaultPath(): string {
   return process.env.VAULT_PATH
-    ? path.resolve(process.cwd(), process.env.VAULT_PATH)
+    ? path.resolve(/* turbopackIgnore: true */ process.cwd(), process.env.VAULT_PATH)
     : resolvePath("sample-docs");
 }

@@ -1,5 +1,4 @@
 import type { AuditEntry } from "./index";
-import { config } from "@/lib/config";
 
 /** 감사 로그를 SIEM Webhook(Datadog/Splunk 호환)으로 전송 */
 export async function exportToSiem(entry: AuditEntry): Promise<void> {

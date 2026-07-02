@@ -35,6 +35,11 @@ function LoginForm() {
       setError("이메일 또는 비밀번호가 올바르지 않습니다.");
       setLoading(false);
     } else if (result?.url) {
+      await fetch("/api/auth/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "auth.login", provider: "credentials" }),
+      });
       window.location.href = result.url;
     }
   };

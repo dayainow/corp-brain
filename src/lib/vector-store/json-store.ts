@@ -54,7 +54,8 @@ export class JsonVectorStore implements VectorStore {
     return (await this.load()).length;
   }
 
-  async upsertDocumentMeta(_meta: DocumentMeta): Promise<void> {
+  async upsertDocumentMeta(meta: DocumentMeta): Promise<void> {
+    void meta;
     // JSON store: metadata lives in chunk metadata only
   }
 }

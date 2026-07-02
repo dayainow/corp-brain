@@ -4,6 +4,11 @@ import { generateEmbedding } from "@/lib/embeddings";
 import { hybridSearch } from "@/lib/vector-store";
 import { config } from "@/lib/config";
 import { writeAuditLog } from "@/lib/audit";
+import { checkRateLimit, denyRateLimit } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
+
+const MAX_QUERY_LENGTH = 1_000;
+const SLACK_REPLAY_WINDOW_SEC = 60 * 5;
 
 function verifySlackSignature(
   signingSecret: string,
@@ -19,6 +24,12 @@ function verifySlackSignature(
   );
 }
 
+function isFreshSlackTimestamp(timestamp: string): boolean {
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts)) return false;
+  return Math.abs(Date.now() / 1000 - ts) <= SLACK_REPLAY_WINDOW_SEC;
+}
+
 /** Slack Slash Command: /corpbrain [질문] */
 export async function POST(req: Request) {
   const signingSecret = process.env.SLACK_SIGNING_SECRET;
@@ -30,6 +41,10 @@ export async function POST(req: Request) {
   const signature = req.headers.get("x-slack-signature") ?? "";
   const timestamp = req.headers.get("x-slack-request-timestamp") ?? "";
 
+  if (!isFreshSlackTimestamp(timestamp)) {
+    return NextResponse.json({ error: "Stale request" }, { status: 401 });
+  }
+
   if (!verifySlackSignature(signingSecret, signature, timestamp, body)) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
@@ -39,10 +54,25 @@ export async function POST(req: Request) {
   const userId = params.get("user_id") ?? "slack-user";
   const userName = params.get("user_name") ?? "slack";
 
+  const slackRate = checkRateLimit(`slack:${userId}`, {
+    windowMs: 60_000,
+    maxRequests: 30,
+  });
+  if (!slackRate.allowed) {
+    return denyRateLimit(slackRate.resetAt);
+  }
+
   if (!query) {
     return NextResponse.json({
       response_type: "ephemeral",
       text: "사용법: `/corpbrain [질문]`\n예: `/corpbrain 휴가 규정 알려줘`",
+    });
+  }
+
+  if (query.length > MAX_QUERY_LENGTH) {
+    return NextResponse.json({
+      response_type: "ephemeral",
+      text: "질문이 너무 깁니다. 1000자 이하로 입력해 주세요.",
     });
   }
 
@@ -75,7 +105,7 @@ export async function POST(req: Request) {
       text: `*질문:* ${query}\n*참고 문서:* ${sources}\n\n검색된 내용을 바탕으로 웹 채팅에서 상세 답변을 확인하세요.\n_${context.slice(0, 500)}..._`,
     });
   } catch (err) {
-    console.error("Slack command error:", err);
+    logError("slack.command", { err, path: "/api/slack/command" });
     return NextResponse.json({
       response_type: "ephemeral",
       text: "처리 중 오류가 발생했습니다.",
