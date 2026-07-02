@@ -104,7 +104,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     items: [
       {
         title: "Sync Vault",
-        body: "sample-docs 및 uploads 폴더의 모든 문서를 다시 스캔·인덱싱합니다. 신규 문서 대량 반영 시 또는 인덱스 오류 시 실행하세요. (시간이 걸릴 수 있습니다)",
+        body: "Vault 전체를 재귀 스캔·인덱싱합니다. 전사공통·재무회계·법무 등 부서 폴더와 uploads/를 포함합니다. 신규 문서 대량 반영 시 또는 인덱스 오류 시 실행하세요.",
       },
       {
         title: "Admin 대시보드",
@@ -165,8 +165,8 @@ export const LOGIN_GUIDE_ITEMS = [
     body: "사내 이메일(@novapay.kr)과 비밀번호로 로그인하거나, Google Workspace SSO를 사용하세요.",
   },
   {
-    title: "데모 체험",
-    body: "아래 데모 계정을 클릭하면 자동 입력됩니다. 비밀번호는 novapay2026입니다. 역할별로 볼 수 있는 문서가 다릅니다.",
+    title: "계정 체험",
+    body: "아래 초기 배포 계정을 클릭하면 자동 입력됩니다. 비밀번호는 novapay2026입니다. 역할별로 볼 수 있는 문서가 다릅니다.",
   },
   {
     title: "로그인 후",

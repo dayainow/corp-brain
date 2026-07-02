@@ -122,7 +122,7 @@ function LoginForm() {
       </div>
 
       <div className="mt-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-        <p className="text-xs text-slate-500 mb-3 font-medium">데모 계정 (비밀번호: novapay2026)</p>
+        <p className="text-xs text-slate-500 mb-3 font-medium">초기 배포 계정 (비밀번호: novapay2026)</p>
         <div className="space-y-2">
           {DEMO_ACCOUNTS.map((acc) => (
             <button

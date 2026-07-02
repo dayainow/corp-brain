@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateChatMessages } from "./messages";
+import { validateChatMessages, toModelMessages } from "./messages";
 
 describe("validateChatMessages", () => {
   it("UIMessage parts 형식을 허용한다", () => {
@@ -29,5 +29,14 @@ describe("validateChatMessages", () => {
     ]);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.code).toBe("MESSAGE_TOO_LONG");
+  });
+
+  it("UIMessage parts를 ModelMessage로 변환한다", () => {
+    const result = toModelMessages([
+      { role: "user", parts: [{ type: "text", text: "NDA 계약서 주요 조항 알려줘" }] },
+    ]);
+    expect(result).toEqual([
+      { role: "user", content: "NDA 계약서 주요 조항 알려줘" },
+    ]);
   });
 });

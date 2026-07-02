@@ -25,14 +25,14 @@ services:
     environment:
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET is required}
       AUTH_URL: http://localhost:3000
-      VAULT_PATH: ./sample-docs
+      VAULT_PATH: ./vault
       VECTOR_STORE: pgvector
       DATABASE_URL: postgresql://corpbrain:corpbrain@postgres:5432/corpbrain
       OLLAMA_BASE_URL: http://host.docker.internal:11434/v1
       OLLAMA_MODEL: llama3
     volumes:
       - ./data:/app/data
-      - ./sample-docs:/app/sample-docs
+      - ./vault:/app/vault
     depends_on:
       postgres:
         condition: service_healthy

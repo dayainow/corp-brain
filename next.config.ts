@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: ["@xenova/transformers", "pg", "pdf-parse", "mammoth"],
   outputFileTracingIncludes: {
-    "/**/*": ["./sample-docs/**/*", "./src/data/**/*", "./data/**/*"],
+    "/**/*": ["./vault/**/*", "./src/data/**/*", "./data/**/*"],
   },
   async headers() {
     return [

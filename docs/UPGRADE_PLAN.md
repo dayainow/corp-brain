@@ -63,7 +63,7 @@ flowchart TB
 | `manager` | 팀장·리드 | + 분기 보고서, AWS 인보이스, 장애 메모 |
 | `admin` | CSO, 법무, C-level | + NDA, 계약서, 임대차 agreement |
 
-### 1.4 데모 계정
+### 1.4 초기 배포 계정
 
 | 이름 | 이메일 | 부서 | Role | 비밀번호 |
 |------|--------|------|------|----------|
@@ -82,7 +82,7 @@ flowchart TB
 | 인증 | UI 드롭다운 Role | SSO + NextAuth + JWT | ✅ NextAuth Credentials |
 | RBAC | 쿼리 파라미터 | 서버 세션 기반 | ✅ API Guard |
 | 벡터 DB | vectors.json | PgVector | ✅ 추상화 + PgVector 구현 |
-| 문서 관리 | sample-docs 고정 | 업로드 + 버전관리 | ✅ Upload API |
+| 문서 관리 | vault/ 고정 | 업로드 + 버전관리 | ✅ Upload API |
 | 응답 UI | Plain text | Markdown + 출처 | ✅ react-markdown |
 | 감사 | 없음 | 접근 로그 | ✅ audit.log |
 | 배포 | 로컬 only | Docker + CI/CD | ✅ Docker + GitHub Actions |
@@ -95,7 +95,7 @@ flowchart TB
 ### Phase 2A — 인증·보안·UX 기반 ✅ (현재)
 
 - [x] NextAuth.js v5 Credentials Provider
-- [x] NovaPay 데모 계정 5종
+- [x] NovaPay 시드 계정 5종
 - [x] Middleware 라우트 보호
 - [x] API 서버측 Role 검증 (`requireAuth`)
 - [x] 문서 업로드 API (Manager+)

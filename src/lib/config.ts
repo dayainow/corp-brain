@@ -36,5 +36,5 @@ export const config = {
 export function getVaultPath(): string {
   return process.env.VAULT_PATH
     ? path.resolve(/* turbopackIgnore: true */ process.cwd(), process.env.VAULT_PATH)
-    : resolvePath("sample-docs");
+    : resolvePath("vault");
 }

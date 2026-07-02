@@ -38,6 +38,7 @@ yarn-error.log*
 
 # audit & runtime data
 /data/
+/src/data/vectors.json
 
 # typescript
 *.tsbuildinfo

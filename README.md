@@ -17,7 +17,7 @@
 | **임베딩** | `Xenova/all-MiniLM-L6-v2` (384차원, Transformers.js) |
 | **벡터 DB** | `vectors.json` (개발) / PostgreSQL + PgVector (운영) |
 | **인증** | NextAuth v5 — Credentials + Google SSO |
-| **샘플 데이터** | `sample-docs/` 합성 비즈니스 문서 22종 |
+| **문서 Vault** | `vault/` 사내 문서 22종 (부서·권한별) |
 
 ---
 
@@ -28,7 +28,7 @@
 | **검색** | Vector + Keyword 하이brid → RRF(`k=60`) → Re-ranking → Top-5 |
 | **청킹** | MD: 헤더 기반 Semantic / PDF·DOCX: 1000자 단위 분할 |
 | **권한** | Frontmatter `role` + NextAuth 세션, 검색 단계 Pre-filtering |
-| **인증** | bcrypt 데모 계정 5종 + Google Workspace (`@novapay.kr`) |
+| **인증** | bcrypt 시드 계정 5종 + Google Workspace (`@novapay.kr`) |
 | **문서** | `.md` `.pdf` `.docx` 업로드 (5MB), 증분 인덱싱 |
 | **만료** | `expires: YYYY-MM-DD` — 만료 문서 검색·인용 제외 |
 | **UI** | react-markdown + GFM, 출처 뱃지, localStorage 세션 기억 |
@@ -117,9 +117,9 @@ flowchart TD
 
 ### 로그인 (`/login`)
 
-- Credentials: `@novapay.kr` 데모 계정
+- Credentials: `@novapay.kr` 시드 계정
 - Google Workspace SSO (`.env`에 `GOOGLE_CLIENT_ID` 설정 시 버튼 표시)
-- 데모 계정 원클릭 입력 UI
+- 시드 계정 원클릭 입력 UI
 
 ### Admin 대시보드 (`/admin`)
 
@@ -147,7 +147,7 @@ Admin 전용. 다음을 한 화면에서 조회합니다.
 | `manager` | general + manager | O | — | — |
 | `admin` | 전체 | O | O | O |
 
-### 데모 계정 (비밀번호 공통: `novapay2026`)
+### 초기 배포 계정 (비밀번호 공통: `novapay2026`)
 
 | 이름 | 이메일 | 부서 | Role |
 |------|--------|------|------|
@@ -191,22 +191,34 @@ expires: 2027-06-30
 | | JsonVectorStore | PgVectorStore |
 |---|-----------------|---------------|
 | **용도** | 로컬 개발 | Docker / 운영 |
-| **경로** | `src/data/vectors.json` | PostgreSQL + pgvector |
+| **경로** | `src/data/vectors.json` (런타임 생성, Git 미포함) | PostgreSQL + pgvector |
 | **마이그레이션** | — | `npm run db:migrate` |
 | **스키마** | — | `npm run db:init` |
 
 PgVector 테이블: `documents`(메타), `vector_chunks`(384d embedding, IVFFlat index).
 
-### 샘플 Vault (`sample-docs/`)
+### 문서 Vault (`vault/`)
 
-NovaPay 업무를 가정한 **합성 문서 22종**:
+NovaPay 사내 지식 베이스 문서 저장소 (부서·권한별 폴더 구조, 22종):
 
-| 유형 | 예시 파일 | Role |
+```
+vault/
+├── 전사공통/   인사·규정·엔지니어링·양식 (general)
+├── 재무회계/   보고서·인보이스·양식 (manager)
+├── 운영/       장애·회의록 (manager)
+├── 법무/       nda·계약 (admin)
+└── uploads/    웹 업로드 저장소
+```
+
+| 폴더 | 예시 문서 | Role |
 |------|-----------|------|
-| 사내 규정 | `vacation.md`, `synthetic_policy_*.md` | general |
-| 보고서·인보이스 | `synthetic_report_q2.md`, `synthetic_invoice_aws.md` | manager |
-| NDA·계약 | `synthetic_nda.md`, `synthetic_contract_*.md` | admin |
-| 양식·메모 | `synthetic_form_*.md`, `synthetic_memo_*.md` | general~manager |
+| `전사공통/인사/` | `연차휴가규정.md`, `온보딩안내.md` | general |
+| `전사공통/규정/` | `재택근무정책.md`, `출장경비정책.md` | general |
+| `재무회계/보고서/` | `2026-q2-마케팅실적.md` | manager |
+| `재무회계/인보이스/` | `aws-2026-q2.md` | manager |
+| `법무/nda/` | `표준nda.md`, `파트너사nda.md` | admin |
+
+상세 구조: [`vault/README.md`](vault/README.md)
 
 ---
 
@@ -290,7 +302,7 @@ SLACK_SIGNING_SECRET=your-signing-secret
 
 ### E2E (Playwright)
 
-- 로그인 페이지·데모 계정·잘못된 비밀번호
+- 로그인 페이지·시드 계정·잘못된 비밀번호
 - 비로그인 → `/login` 리다이렉트
 - Admin 로그인 → 채팅 UI → Admin 대시보드
 - `/api/health` 공개 접근
@@ -314,8 +326,8 @@ npm run dev                # http://localhost:3000
 ```
 
 1. `lee.minho@novapay.kr` / `novapay2026` 로그인 (admin)
-2. **Sync Vault** 클릭 → sample-docs 인덱싱 (~90 청크)
-3. "우리 회사 휴가 규정 알려줘" 질의 → `[출처: vacation.md]` 확인
+2. **Sync Vault** 클릭 → `vault/` 인덱싱
+3. "우리 회사 휴가 규정 알려줘" 질의 → `[출처: 연차휴가규정.md]` 확인
 4. general 계정으로 NDA 질의 → 권한 밖 문서 미노출 확인
 
 ### Docker (PgVector)
@@ -335,7 +347,7 @@ docker compose up app
 |------|------|--------|------|
 | `AUTH_SECRET` | O | — | NextAuth JWT 서명 |
 | `AUTH_URL` | O | `http://localhost:3000` | 콜백 URL |
-| `VAULT_PATH` | | `./sample-docs` | 문서 Vault |
+| `VAULT_PATH` | | `./vault` | 문서 Vault |
 | `OLLAMA_BASE_URL` | | `http://localhost:11434/v1` | Ollama API |
 | `OLLAMA_MODEL` | | `llama3` | LLM 모델 |
 | `RAG_TOP_K` | | `5` | 검색 청크 수 |
@@ -387,7 +399,7 @@ corp-brain/
 ├── e2e/                          # Playwright
 ├── scripts/                      # db:init, db:migrate, eval:search
 ├── data/eval-queries.json
-├── sample-docs/                  # 22종 합성 문서
+├── vault/                        # 부서·권한별 문서 Vault (README.md 참고)
 ├── docker-compose.yml            # postgres + app
 ├── Dockerfile                    # Next.js standalone
 └── docs/UPGRADE_PLAN.md
@@ -404,13 +416,13 @@ corp-brain/
 - [x] Frontmatter RBAC Pre-filtering
 - [x] Ollama + Vercel AI SDK v6 스트리밍
 - [x] 출처 뱃지 `[출처: filename.md]`
-- [x] sample-docs 합성 문서 22종
+- [x] vault/ 사내 문서 22종
 
 ### Phase 2 — 인증 & 영속화
 
 - [x] NextAuth v5 (Credentials + Google OAuth)
 - [x] Middleware + `requireAuth()` API Guard
-- [x] NovaPay 데모 계정 5종 (bcrypt)
+- [x] NovaPay 시드 계정 5종 (bcrypt)
 - [x] SSO Role 자동 매핑 (`role-mapping.ts`)
 - [x] VectorStore interface + JSON / PgVector
 - [x] docker-compose, `db:init`, `db:migrate`
@@ -449,7 +461,7 @@ corp-brain/
 
 | 증상 | 해결 |
 |------|------|
-| Sync Vault 실패 | `.env.local`에 `VAULT_PATH=./sample-docs` 확인 |
+| Sync Vault 실패 | `.env.local`에 `VAULT_PATH=./vault` 확인 |
 | 채팅 500 에러 | Ollama 실행 여부 (`ollama run llama3`) |
 | 로그인 안 됨 | `AUTH_SECRET` 32자 이상 설정 |
 | 빈 답변 / no context | Admin으로 Sync Vault 먼저 실행 |

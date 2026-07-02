@@ -11,7 +11,7 @@ export interface CorpBrainUser {
 }
 
 /**
- * NovaPay(노바페이) 데모 계정
+ * NovaPay(노바페이) 초기 배포 시드 계정
  * 공통 비밀번호: novapay2026
  */
 export const NOVAPAY_USERS: CorpBrainUser[] = [

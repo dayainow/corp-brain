@@ -8,7 +8,7 @@ test.describe("로그인", () => {
     await expect(page.getByText("처음이신가요? 사용 안내")).toBeVisible();
   });
 
-  test("데모 계정 로그인 성공", async ({ page }) => {
+  test("시드 계정 로그인 성공", async ({ page }) => {
     await page.goto("/login");
     await page.getByPlaceholder("name@novapay.kr").fill("kim.junho@novapay.kr");
     await page.locator('input[type="password"]').fill("novapay2026");

@@ -7,7 +7,7 @@ describe("SSO Role Mapping", () => {
     expect(isAllowedDomain("test@gmail.com")).toBe(false);
   });
 
-  it("등록된 데모 계정은 DB Role 사용", () => {
+  it("등록된 시드 계정은 DB Role 사용", () => {
     expect(resolveRoleFromSSO("lee.minho@novapay.kr")).toBe("admin");
     expect(resolveRoleFromSSO("park.suyeon@novapay.kr")).toBe("manager");
     expect(resolveRoleFromSSO("kim.junho@novapay.kr")).toBe("general");

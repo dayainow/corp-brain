@@ -19,7 +19,7 @@ const DEPARTMENT_ROLE_MAP: Record<string, UserRole> = {
 
 /**
  * SSO 로그인 시 이메일·부서 정보로 Role 결정
- * 1. 데모 계정 DB에 있으면 해당 Role
+ * 1. 시드 계정 DB에 있으면 해당 Role
  * 2. 부서 키워드 매칭
  * 3. 도메인 기본 Role
  */
