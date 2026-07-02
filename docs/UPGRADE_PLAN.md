@@ -90,14 +90,17 @@
 - [x] 증분 Sync (`data/index-manifest.json`)
 - [x] eval CI 게이트 (Hit@3 ≥ 50%)
 - [ ] 파일럿 50명 배포, Hit@3 ≥ 80% 달성
+- [x] 채팅 👍/👎 피드백 → audit.log
+- [x] Slack Role 매핑 + Ollama 답변 생성
+- [x] 한국어 쿼리 정규화·동의어 리랭킹
 - [ ] `ko-sroberta` 임베딩 A/B 테스트
 
 ### Phase 5 — 확장 (향후)
 
 - [ ] Notion/Confluence/Drive 커넥터 (Glean 패턴)
 - [ ] Cross-encoder Re-ranking
-- [ ] Slack 사용자별 Role + LLM 스트리밍
-- [ ] 채팅 피드백(👍/👎) → 검색 품질 루프
+- [x] Slack 사용자별 Role + LLM 답변
+- [x] 채팅 피드백(👍/👎) → 검색 품질 루프
 - [ ] Microsoft Teams 봇
 - [ ] K8s, 2FA TOTP, 멀티 테넌트
 

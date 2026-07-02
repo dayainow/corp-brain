@@ -2,6 +2,7 @@ import type { PoolClient } from "pg";
 import { withClient } from "@/lib/db/client";
 import type { UserRole } from "@/lib/rbac";
 import { getAccessibleRoles } from "@/lib/rbac";
+import { expandKoreanTokens } from "@/lib/search/korean-query";
 import type { VectorStore, SearchCandidateOptions } from "./interface";
 import type { DocumentMeta, VectorDocument } from "./types";
 
@@ -86,11 +87,7 @@ export class PgVectorStore implements VectorStore {
     const roles = getAccessibleRoles(options.userRole);
     const limit = options.limit;
     const vectorStr = toVectorString(options.queryEmbedding);
-    const tokens = options.query
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((t) => t.length > 1)
-      .slice(0, 6);
+    const tokens = expandKoreanTokens(options.query).filter((t) => t.length > 1).slice(0, 8);
 
     const rows = await withClient(async (client) => {
       const vectorResult = await client.query(

@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Send, Database, Loader2, ShieldAlert, Trash2, LogOut, User, CircleHelp } from "lucide-react";
 import { ChatMessageContent } from "@/components/chat-message";
+import { ChatFeedback } from "@/components/chat-feedback";
 import { DocumentUpload } from "@/components/document-upload";
 import { HelpPanel } from "@/components/help-panel";
 import { OnboardingBanner } from "@/components/onboarding-banner";
@@ -209,7 +210,17 @@ export default function Chat() {
             />
           </div>
         ) : (
-          messages?.map((m) => (
+          messages?.map((m, index) => {
+            const prevUser =
+              m.role === "assistant"
+                ? [...(messages ?? [])]
+                    .slice(0, index)
+                    .reverse()
+                    .find((msg) => msg.role === "user")
+                : undefined;
+            const prevQuery = prevUser ? getMessageText(prevUser) : undefined;
+
+            return (
             <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
                 className={`max-w-[85%] rounded-2xl px-5 py-3 shadow-sm ${
@@ -221,11 +232,15 @@ export default function Chat() {
                 {m.role === "user" ? (
                   <div className="whitespace-pre-wrap">{getMessageText(m)}</div>
                 ) : (
-                  <ChatMessageContent content={getMessageText(m)} />
+                  <>
+                    <ChatMessageContent content={getMessageText(m)} />
+                    <ChatFeedback messageId={m.id} query={prevQuery} />
+                  </>
                 )}
               </div>
             </div>
-          ))
+            );
+          })
         )}
         {isLoading && (
           <div className="flex justify-start">

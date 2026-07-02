@@ -1,4 +1,5 @@
 import type { VectorDocument } from "@/lib/vector-store/types";
+import { expandKoreanTokens, normalizeKoreanQuery } from "./korean-query";
 
 export interface RankedDocument {
   document: VectorDocument;
@@ -15,12 +16,13 @@ export function rerankCandidates(
   candidates: Array<{ document: VectorDocument; rrfScore: number }>,
   topK: number = 5
 ): RankedDocument[] {
-  const q = query.toLowerCase().trim();
-  const qTokens = q.split(/\s+/).filter((t) => t.length > 1);
+  const q = normalizeKoreanQuery(query);
+  const qTokens = expandKoreanTokens(query);
 
   const scored = candidates.map(({ document, rrfScore }) => {
     const text = document.text.toLowerCase();
     const fileName = (document.metadata.fileName as string).toLowerCase();
+    const fileStem = fileName.replace(/\.(md|pdf|docx)$/i, "");
     const title = ((document.metadata.title as string) ?? "").toLowerCase();
 
     let boost = 0;
@@ -30,7 +32,7 @@ export function rerankCandidates(
 
     // 파일명·제목 매칭
     for (const token of qTokens) {
-      if (fileName.includes(token)) boost += 1.5;
+      if (fileName.includes(token) || fileStem.includes(token)) boost += 1.5;
       if (title.includes(token)) boost += 1.2;
     }
 

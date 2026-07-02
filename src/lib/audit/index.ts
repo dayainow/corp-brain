@@ -8,6 +8,7 @@ export type AuditAction =
   | "auth.login"
   | "auth.logout"
   | "chat.query"
+  | "chat.feedback"
   | "index.sync"
   | "document.upload"
   | "document.delete";

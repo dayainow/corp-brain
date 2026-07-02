@@ -1,14 +1,14 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
-import { generateEmbedding } from "@/lib/embeddings";
-import { hybridSearch } from "@/lib/vector-store";
-import { config } from "@/lib/config";
+import { resolveSlackUserRole } from "@/lib/auth/slack-mapping";
+import { retrieveRagContext, generateRagAnswer } from "@/lib/chat/rag";
 import { writeAuditLog } from "@/lib/audit";
 import { checkRateLimit, denyRateLimit } from "@/lib/rate-limit";
 import { logError } from "@/lib/logger";
 
 const MAX_QUERY_LENGTH = 1_000;
 const SLACK_REPLAY_WINDOW_SEC = 60 * 5;
+const SLACK_TEXT_LIMIT = 2_800;
 
 function verifySlackSignature(
   signingSecret: string,
@@ -77,32 +77,39 @@ export async function POST(req: Request) {
   }
 
   try {
-    const embedding = await generateEmbedding(query);
-    const docs = await hybridSearch(query, embedding, config.rag.topK, "general");
-    const context = docs
-      .map((d) => `[출처: ${d.metadata.fileName}]\n${d.text}`)
-      .join("\n\n");
+    const { role, email } = resolveSlackUserRole(userId, userName);
+    const rag = await retrieveRagContext(query, query, role);
 
     await writeAuditLog({
       action: "chat.query",
       userId,
-      userEmail: `${userName}@slack`,
-      userRole: "general",
-      detail: { query, source: "slack", sourcesFound: docs.length },
+      userEmail: email,
+      userRole: role,
+      detail: { query, source: "slack", sourcesFound: rag.relevantDocs.length, sources: rag.sources },
     });
 
-    if (docs.length === 0) {
+    if (rag.relevantDocs.length === 0) {
       return NextResponse.json({
         response_type: "ephemeral",
         text: "관련 사내 문서를 찾지 못했습니다.",
       });
     }
 
-    const sources = [...new Set(docs.map((d) => d.metadata.fileName))].join(", ");
+    let answer: string;
+    try {
+      answer = await generateRagAnswer(rag.systemPrompt, query);
+    } catch {
+      answer = `관련 문서를 찾았습니다: ${rag.sources.join(", ")}\n웹 채팅에서 상세 답변을 확인해 주세요.`;
+    }
+
+    const text = `*질문:* ${query}\n*참고 문서:* ${rag.sources.join(", ")}\n\n${answer}`.slice(
+      0,
+      SLACK_TEXT_LIMIT
+    );
 
     return NextResponse.json({
       response_type: "in_channel",
-      text: `*질문:* ${query}\n*참고 문서:* ${sources}\n\n검색된 내용을 바탕으로 웹 채팅에서 상세 답변을 확인하세요.\n_${context.slice(0, 500)}..._`,
+      text,
     });
   } catch (err) {
     logError("slack.command", { err, path: "/api/slack/command" });

@@ -83,6 +83,7 @@ export default function AdminPage() {
 
   const ACTION_LABELS: Record<string, string> = {
     "chat.query": "질의",
+    "chat.feedback": "피드백",
     "index.sync": "인덱싱",
     "document.upload": "업로드",
     "auth.login": "로그인",
