@@ -2,7 +2,7 @@
 
 > **타깃 고객사**: 주식회사 노바페이 (NovaPay)  
 > **문서 버전**: v1.0 · 2026-07-01  
-> **현재 단계**: Phase 2A 진행 중
+> **현재 단계**: Phase 2B 완료
 
 ---
 
@@ -81,7 +81,7 @@ flowchart TB
 |------|---------------|---------------------|-----------------|
 | 인증 | UI 드롭다운 Role | SSO + NextAuth + JWT | ✅ NextAuth Credentials |
 | RBAC | 쿼리 파라미터 | 서버 세션 기반 | ✅ API Guard |
-| 벡터 DB | vectors.json | PgVector | 🔄 JSON (추상화 준비) |
+| 벡터 DB | vectors.json | PgVector | ✅ 추상화 + PgVector 구현 |
 | 문서 관리 | sample-docs 고정 | 업로드 + 버전관리 | ✅ Upload API |
 | 응답 UI | Plain text | Markdown + 출처 | ✅ react-markdown |
 | 감사 | 없음 | 접근 로그 | ✅ audit.log |
@@ -105,13 +105,13 @@ flowchart TB
 - [x] `.env.example` + `lib/config.ts` 중앙 설정
 - [x] 업그레이드 계획서 (본 문서)
 
-### Phase 2B — 데이터 영속화 (다음 스프린트)
+### Phase 2B — 데이터 영속화 ✅
 
-- [ ] PgVector + PostgreSQL (`docker-compose.yml`)
-- [ ] Vector Store 추상화 레이어 (`IVectorStore` interface)
-- [ ] `vectors.json` → PgVector 마이그레이션 스크립트
-- [ ] 업로드 후 자동 증분 인덱싱 (전체 재인덱싱 불필요)
-- [ ] 문서 메타데이터 테이블 (제목, 작성자, 버전, 만료일)
+- [x] PgVector + PostgreSQL (`docker-compose.yml`)
+- [x] Vector Store 추상화 레이어 (`VectorStore` interface)
+- [x] `vectors.json` → PgVector 마이그레이션 스크립트
+- [x] 업로드 후 자동 증분 인덱싱
+- [x] 문서 메타데이터 테이블 (제목, 작성자, 업로더)
 
 **예상 기간**: 1~2주  
 **완료 기준**: 10만 청크 이하 500ms 이내 검색, 서버 재시작 후에도 인덱스 유지

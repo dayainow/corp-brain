@@ -4,6 +4,7 @@ import path from "path";
 import { requireAuth } from "@/lib/auth/guard";
 import { canUploadDocuments } from "@/lib/rbac";
 import { getVaultPath } from "@/lib/config";
+import { indexSingleFile } from "@/lib/indexer";
 import { writeAuditLog, getClientIp } from "@/lib/audit";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
@@ -63,19 +64,26 @@ export async function POST(req: Request) {
 
     await fs.promises.writeFile(destPath, content, "utf-8");
 
+    const indexResult = await indexSingleFile(
+      destPath,
+      vaultPath,
+      session!.user.email
+    );
+
     await writeAuditLog({
       action: "document.upload",
       userId: session!.user.id,
       userEmail: session!.user.email,
       userRole: session!.user.role,
-      detail: { fileName: safeName, docRole, path: destPath },
+      detail: { fileName: safeName, docRole, path: destPath, chunks: indexResult.chunks },
       ip: getClientIp(req),
     });
 
     return NextResponse.json({
       success: true,
       file: { name: safeName, path: destPath, role: docRole },
-      message: "업로드 완료. Sync Vault로 인덱싱을 실행하세요.",
+      index: indexResult,
+      message: `업로드 및 인덱싱 완료 (${indexResult.chunks}개 청크)`,
     });
   } catch (err) {
     console.error("Upload failed:", err);
