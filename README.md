@@ -4,7 +4,8 @@
 사내 문서를 Ollama로 로컬 처리하며, RBAC·NextAuth·Slack 연동까지 지원합니다.
 
 > 타깃: 주식회사 노바페이 — B2B 결제·정산 FinTech (320명)  
-> 상세 계획·설계 다이어gram: [`docs/UPGRADE_PLAN.md`](docs/UPGRADE_PLAN.md)
+> 상세 계획·설계 다이어gram: [`docs/UPGRADE_PLAN.md`](docs/UPGRADE_PLAN.md)  
+> **납품 산출물 (11종)**: [`docs/deliverables/README.md`](docs/deliverables/README.md)
 
 ---
 
@@ -18,6 +19,26 @@
 | **벡터 DB** | `vectors.json` (개발) / PostgreSQL + PgVector (운영) |
 | **인증** | NextAuth v5 — Credentials + Google SSO |
 | **문서 Vault** | `vault/` 사내 문서 22종 (부서·권한별) |
+
+---
+
+## 납품 산출물
+
+NovaPay 납품용 설계·명세 문서 11종입니다. 전체 목록과 다운로드 인덱스는 [`docs/deliverables/README.md`](docs/deliverables/README.md)를 참고하세요.
+
+| No | 문서 | 링크 |
+|----|------|------|
+| 01 | 화면 목록 정의서 | [`01_화면목록정의서.md`](docs/deliverables/01_화면목록정의서.md) |
+| 02 | 기능 요구사항 정의서 | [`02_기능요구사항정의서.md`](docs/deliverables/02_기능요구사항정의서.md) |
+| 03 | 시스템 아키텍처 설계서 | [`03_시스템아키텍처설계서.md`](docs/deliverables/03_시스템아키텍처설계서.md) |
+| 04 | 화면 흐름도 | [`04_화면흐름도.md`](docs/deliverables/04_화면흐름도.md) |
+| 05 | 화면 설계서 | [`05_화면설계서.md`](docs/deliverables/05_화면설계서.md) |
+| 06 | API 연동 명세서 | [`06_API연동명세서.md`](docs/deliverables/06_API연동명세서.md) |
+| 07 | 컴포넌트 설계서 | [`07_컴포넌트설계서.md`](docs/deliverables/07_컴포넌트설계서.md) |
+| 08 | 개발 환경 구성서 | [`08_개발환경구성서.md`](docs/deliverables/08_개발환경구성서.md) |
+| 09 | 코딩 컨벤션 정의서 | [`09_코딩컨벤션정의서.md`](docs/deliverables/09_코딩컨벤션정의서.md) |
+| 10 | 기능 구현 명세서 | [`10_기능구현명세서.md`](docs/deliverables/10_기능구현명세서.md) |
+| 11 | 성능 분석 보고서 | [`11_성능분석보고서.md`](docs/deliverables/11_성능분석보고서.md) |
 
 ---
 
@@ -405,7 +426,9 @@ corp-brain/
 ├── vault/                        # 부서·권한별 문서 Vault (README.md 참고)
 ├── docker-compose.yml            # postgres + app
 ├── Dockerfile                    # Next.js standalone
-└── docs/UPGRADE_PLAN.md
+└── docs/
+    ├── UPGRADE_PLAN.md
+    └── deliverables/           # 납품 산출물 11종
 ```
 
 ---
@@ -478,4 +501,5 @@ corp-brain/
 이슈·PR: [dayainow/corp-brain](https://github.com/dayainow/corp-brain)
 
 - 아키텍처·NovaPay 도입 계획: [`docs/UPGRADE_PLAN.md`](docs/UPGRADE_PLAN.md)
+- 납품 산출물 (11종): [`docs/deliverables/README.md`](docs/deliverables/README.md)
 - 환경 변수 템플릿: [`.env.example`](.env.example)
