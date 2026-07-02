@@ -27,3 +27,10 @@ jobs:
         env:
           AUTH_SECRET: ci-test-secret-at-least-32-chars-long
           AUTH_URL: http://localhost:3000
+
+      - run: npx playwright install chromium --with-deps
+      - run: npm run test:e2e
+        env:
+          CI: true
+          AUTH_SECRET: e2e-test-secret-at-least-32-chars-long
+          AUTH_URL: http://localhost:3000
