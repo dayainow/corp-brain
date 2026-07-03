@@ -87,6 +87,7 @@ npm run health:watch
 
 - Admin UI: `/admin` → 파일럿 피드백 섹션
 - CLI: `npm run report:feedback` → [PILOT_QUALITY_REPORT.md](./PILOT_QUALITY_REPORT.md) §3
+- CLI: `npm run report:pilot-weekly` → §2·§3·eval 후보 일괄
 - API: `GET /api/admin/feedback` (admin 권한)
 
 상세 오픈 절차: [PILOT_OPEN.md](./PILOT_OPEN.md)

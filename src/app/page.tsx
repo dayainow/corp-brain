@@ -7,6 +7,7 @@ import { useSession, signOut } from "next-auth/react";
 import { Send, Database, Loader2, ShieldAlert, Trash2, LogOut, User, CircleHelp, FolderTree } from "lucide-react";
 import { ChatMessageContent } from "@/components/chat-message";
 import { ChatFeedback } from "@/components/chat-feedback";
+import { extractSourcesFromContent } from "@/lib/chat/sources";
 import { DocumentUpload } from "@/components/document-upload";
 import { DocumentTree } from "@/components/document-tree";
 import { HelpPanel } from "@/components/help-panel";
@@ -244,6 +245,8 @@ export default function Chat() {
                     .find((msg) => msg.role === "user")
                 : undefined;
             const prevQuery = prevUser ? getMessageText(prevUser) : undefined;
+            const assistantSources =
+              m.role === "assistant" ? extractSourcesFromContent(getMessageText(m)) : [];
 
             return (
               <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -259,7 +262,11 @@ export default function Chat() {
                   ) : (
                     <>
                       <ChatMessageContent content={getMessageText(m)} />
-                      <ChatFeedback messageId={m.id} query={prevQuery} />
+                      <ChatFeedback
+                        messageId={m.id}
+                        query={prevQuery}
+                        sources={assistantSources}
+                      />
                     </>
                   )}
                 </div>

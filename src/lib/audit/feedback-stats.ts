@@ -5,6 +5,7 @@ export interface DownQueryStat {
   count: number;
   sources: string[];
   lastAt: string;
+  role: string;
 }
 
 export interface RecentFeedback {
@@ -57,6 +58,7 @@ export function aggregateFeedbackStats(
       if (existing) {
         existing.count += 1;
         existing.lastAt = log.timestamp;
+        existing.role = log.userRole;
         for (const s of sources) {
           if (!existing.sources.includes(s)) existing.sources.push(s);
         }
@@ -66,6 +68,7 @@ export function aggregateFeedbackStats(
           count: 1,
           sources: [...sources],
           lastAt: log.timestamp,
+          role: log.userRole,
         });
       }
     }

@@ -97,7 +97,7 @@ npm run health:watch
 ### 3.2 down 질문 → 품질 개선
 
 1. Admin **👎 Top 질문** 또는 `report:feedback` 출력 확인
-2. `data/eval-queries.json`에 후보 문항 추가
+2. `data/eval-queries.json`에 후보 문항 추가 — **Admin `/admin` → eval 추가** 또는 `npm run report:pilot-weekly` JSON 블록
 3. 동의어·문서 보완 후 `npm run index:vault`
 4. `EVAL_HIT3_THRESHOLD=0.8 npm run eval:search` 재측정
 
@@ -106,8 +106,9 @@ npm run health:watch
 [PILOT_QUALITY_REPORT.md](./PILOT_QUALITY_REPORT.md) 템플릿 작성:
 
 ```bash
-npm run report:feedback          # §3 피드백
-EVAL_HIT3_THRESHOLD=0.8 npm run eval:search   # §2 Hit@3
+npm run report:feedback          # §3 피드백만
+npm run report:pilot-weekly      # §2 Hit@3 + §3 피드백 + eval 후보 JSON
+EVAL_HIT3_THRESHOLD=0.8 npm run eval:search   # Hit@3만
 ```
 
 ---

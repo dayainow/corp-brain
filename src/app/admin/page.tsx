@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { AuditEntry } from "@/lib/audit";
 import type { FeedbackStats } from "@/lib/audit/feedback-stats";
+import type { EvalCandidate } from "@/lib/search/eval-candidates";
 
 interface DocStats {
   totalDocuments: number;
@@ -45,8 +46,24 @@ export default function AdminPage() {
   const [stats, setStats] = useState<DocStats | null>(null);
   const [searchMetrics, setSearchMetrics] = useState<SearchMetrics | null>(null);
   const [feedbackStats, setFeedbackStats] = useState<FeedbackStats | null>(null);
+  const [evalCandidates, setEvalCandidates] = useState<EvalCandidate[]>([]);
   const [feedbackHint, setFeedbackHint] = useState<string>("");
+  const [evalModal, setEvalModal] = useState<EvalCandidate | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const refreshFeedback = () => {
+    fetch("/api/admin/feedback")
+      .then((r) => r.json())
+      .then((data) => {
+        setFeedbackStats(data.stats ?? null);
+        setEvalCandidates(data.evalCandidates ?? []);
+        setFeedbackHint(data.hint ?? "");
+      })
+      .catch(() => {
+        setFeedbackStats(null);
+        setEvalCandidates([]);
+      });
+  };
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -72,6 +89,7 @@ export default function AdminPage() {
       .then((r) => r.json())
       .then((data) => {
         setFeedbackStats(data.stats ?? null);
+        setEvalCandidates(data.evalCandidates ?? []);
         setFeedbackHint(data.hint ?? "");
       })
       .catch(() => setFeedbackStats(null));
@@ -182,25 +200,60 @@ export default function AdminPage() {
             {feedbackStats.topDownQueries.length > 0 ? (
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                  👎 Top 질문
+                  👎 Top 질문 → eval 후보
                 </h3>
-                {feedbackStats.topDownQueries.map((q) => (
-                  <div
-                    key={q.query}
-                    className="text-sm p-2 rounded bg-slate-50 dark:bg-slate-800 flex justify-between gap-2"
-                  >
-                    <span className="font-medium truncate">{q.query}</span>
-                    <span className="text-slate-400 shrink-0">{q.count}건</span>
-                  </div>
-                ))}
+                {feedbackStats.topDownQueries.map((q) => {
+                  const candidate = evalCandidates.find((c) => c.query === q.query);
+                  return (
+                    <div
+                      key={q.query}
+                      className="text-sm p-2 rounded bg-slate-50 dark:bg-slate-800 flex items-center justify-between gap-2"
+                    >
+                      <div className="min-w-0">
+                        <span className="font-medium truncate block">{q.query}</span>
+                        {candidate && candidate.suggestedExpectedFiles.length > 0 && (
+                          <span className="text-xs text-slate-400 truncate block">
+                            출처: {candidate.suggestedExpectedFiles.join(", ")}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-slate-400 text-xs">{q.count}건</span>
+                        {candidate?.inEval ? (
+                          <span className="text-xs text-green-600">eval 반영됨</span>
+                        ) : candidate ? (
+                          <button
+                            type="button"
+                            onClick={() => setEvalModal(candidate)}
+                            className="text-xs px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                          >
+                            eval 추가
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-sm text-slate-400">{feedbackHint || "피드백이 아직 없습니다."}</p>
             )}
             <p className="text-xs text-slate-400 mt-3">
-              CLI: <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded">npm run report:feedback</code>
+              CLI:{" "}
+              <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded">npm run report:pilot-weekly</code>
             </p>
           </section>
+        )}
+
+        {evalModal && (
+          <EvalAddModal
+            candidate={evalModal}
+            onClose={() => setEvalModal(null)}
+            onAdded={() => {
+              setEvalModal(null);
+              refreshFeedback();
+            }}
+          />
         )}
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -264,6 +317,91 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
       <div className="flex items-center gap-2 text-slate-500 mb-1">{icon}<span className="text-sm">{label}</span></div>
       <div className="text-2xl font-bold">{value}</div>
+    </div>
+  );
+}
+
+function EvalAddModal({
+  candidate,
+  onClose,
+  onAdded,
+}: {
+  candidate: EvalCandidate;
+  onClose: () => void;
+  onAdded: () => void;
+}) {
+  const [role, setRole] = useState(candidate.role);
+  const [expectedFiles, setExpectedFiles] = useState(
+    candidate.suggestedExpectedFiles.join(", ")
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async () => {
+    setSubmitting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/eval-queries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: candidate.query,
+          role,
+          expectedFiles: expectedFiles.split(",").map((s) => s.trim()).filter(Boolean),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "추가 실패");
+        return;
+      }
+      onAdded();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 w-full max-w-lg shadow-xl">
+        <h3 className="font-semibold mb-3">eval-queries에 추가</h3>
+        <p className="text-sm text-slate-500 mb-4 truncate">{candidate.query}</p>
+        <label className="block text-sm mb-1">역할</label>
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="w-full mb-3 rounded-md border border-slate-200 dark:border-slate-700 bg-transparent px-3 py-2 text-sm"
+        >
+          <option value="general">general</option>
+          <option value="manager">manager</option>
+          <option value="admin">admin</option>
+        </select>
+        <label className="block text-sm mb-1">기대 문서 (쉼표 구분)</label>
+        <input
+          value={expectedFiles}
+          onChange={(e) => setExpectedFiles(e.target.value)}
+          placeholder="연차휴가규정.md, 인사규정.md"
+          className="w-full mb-4 rounded-md border border-slate-200 dark:border-slate-700 bg-transparent px-3 py-2 text-sm"
+        />
+        {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 text-sm rounded-md border border-slate-200 dark:border-slate-700"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={submitting}
+            className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+          >
+            {submitting ? "추가 중…" : "추가"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

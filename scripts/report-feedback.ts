@@ -46,3 +46,4 @@ console.log("");
 console.log("---");
 console.log(`총 피드백: ${stats.total}건 · down 비율: ${(stats.downRate * 100).toFixed(1)}%`);
 console.log("Admin 대시보드: /admin · API: GET /api/admin/feedback");
+console.log("주간 리포트: npm run report:pilot-weekly");
