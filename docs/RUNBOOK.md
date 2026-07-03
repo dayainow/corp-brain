@@ -59,6 +59,38 @@ curl -s http://localhost:3000/api/health | jq .
 | 감사 로그 | `data/audit.log` (또는 `AUDIT_LOG_PATH`) |
 | Ollama (호스트) | `ollama ps`, 시스템 서비스 로그 |
 
+### 2.4 파일럿 모니터링 (B-Day ~ D+7)
+
+**D-1 사전 점검**
+
+```bash
+npm run pilot:preflight              # AUTH_SECRET · health · Ollama
+npm run pilot:preflight -- --full    # + smoke:compose
+```
+
+**health 주기 알림** (15분 기본)
+
+```bash
+export BASE_URL=http://localhost:3000
+export HEALTH_ALERT_WEBHOOK_URL=https://hooks.slack.com/...  # 또는 AUDIT_WEBHOOK_URL
+npm run health:watch
+```
+
+| 환경 변수 | 기본값 | 설명 |
+|-----------|--------|------|
+| `BASE_URL` | `http://localhost:3000` | 헬스 폴링 대상 |
+| `INTERVAL_SEC` | `900` | 폴링 간격(초) |
+| `HEALTH_ALERT_WEBHOOK_URL` | — | Slack Incoming Webhook (우선) |
+| `AUDIT_WEBHOOK_URL` | — | 웹훅 미설정 시 대체 |
+
+**피드백 집계**
+
+- Admin UI: `/admin` → 파일럿 피드백 섹션
+- CLI: `npm run report:feedback` → [PILOT_QUALITY_REPORT.md](./PILOT_QUALITY_REPORT.md) §3
+- API: `GET /api/admin/feedback` (admin 권한)
+
+상세 오픈 절차: [PILOT_OPEN.md](./PILOT_OPEN.md)
+
 ---
 
 ## 3. 정기 작업

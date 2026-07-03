@@ -11,8 +11,10 @@ import {
   ArrowLeft,
   Loader2,
   CircleHelp,
+  ThumbsUp,
 } from "lucide-react";
 import type { AuditEntry } from "@/lib/audit";
+import type { FeedbackStats } from "@/lib/audit/feedback-stats";
 
 interface DocStats {
   totalDocuments: number;
@@ -42,6 +44,8 @@ export default function AdminPage() {
   const [docs, setDocs] = useState<DocInfo[]>([]);
   const [stats, setStats] = useState<DocStats | null>(null);
   const [searchMetrics, setSearchMetrics] = useState<SearchMetrics | null>(null);
+  const [feedbackStats, setFeedbackStats] = useState<FeedbackStats | null>(null);
+  const [feedbackHint, setFeedbackHint] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -63,6 +67,14 @@ export default function AdminPage() {
       .then((r) => r.json())
       .then((metricsData) => setSearchMetrics(metricsData.metrics ?? null))
       .catch(() => setSearchMetrics(null));
+
+    fetch("/api/admin/feedback")
+      .then((r) => r.json())
+      .then((data) => {
+        setFeedbackStats(data.stats ?? null);
+        setFeedbackHint(data.hint ?? "");
+      })
+      .catch(() => setFeedbackStats(null));
   }, [session, status]);
 
   if (status === "loading" || loading) {
@@ -140,6 +152,54 @@ export default function AdminPage() {
                 <div className="text-xs text-slate-500">MRR</div>
               </div>
             </div>
+          </section>
+        )}
+
+        {feedbackStats && (
+          <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5">
+            <h2 className="font-semibold mb-3 flex items-center gap-2">
+              <ThumbsUp className="w-4 h-4 text-green-600" />
+              파일럿 피드백 (👍/👎)
+            </h2>
+            <div className="grid grid-cols-3 gap-4 text-center mb-4">
+              <div>
+                <div className="text-2xl font-bold text-green-600">{feedbackStats.up}</div>
+                <div className="text-xs text-slate-500">👍 up</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-red-600">{feedbackStats.down}</div>
+                <div className="text-xs text-slate-500">👎 down</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">
+                  {feedbackStats.total > 0
+                    ? `${(feedbackStats.downRate * 100).toFixed(0)}%`
+                    : "—"}
+                </div>
+                <div className="text-xs text-slate-500">down 비율</div>
+              </div>
+            </div>
+            {feedbackStats.topDownQueries.length > 0 ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                  👎 Top 질문
+                </h3>
+                {feedbackStats.topDownQueries.map((q) => (
+                  <div
+                    key={q.query}
+                    className="text-sm p-2 rounded bg-slate-50 dark:bg-slate-800 flex justify-between gap-2"
+                  >
+                    <span className="font-medium truncate">{q.query}</span>
+                    <span className="text-slate-400 shrink-0">{q.count}건</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400">{feedbackHint || "피드백이 아직 없습니다."}</p>
+            )}
+            <p className="text-xs text-slate-400 mt-3">
+              CLI: <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded">npm run report:feedback</code>
+            </p>
           </section>
         )}
 

@@ -55,14 +55,25 @@ export async function writeAuditLog(entry: Omit<AuditEntry, "timestamp">): Promi
 }
 
 export async function readAuditLogs(limit: number = 100): Promise<AuditEntry[]> {
+  return readAuditLogsFiltered({ limit });
+}
+
+export async function readAuditLogsFiltered(options: {
+  limit?: number;
+  action?: AuditAction;
+}): Promise<AuditEntry[]> {
+  const limit = options.limit ?? 100;
   try {
     if (!fs.existsSync(config.audit.logPath)) return [];
     const content = await fs.promises.readFile(config.audit.logPath, "utf-8");
     const lines = content.trim().split("\n").filter(Boolean);
-    return lines
-      .slice(-limit)
+    let entries = lines
       .map((line) => JSON.parse(line) as AuditEntry)
-      .reverse();
+      .filter((e) => !options.action || e.action === options.action);
+    if (entries.length > limit) {
+      entries = entries.slice(-limit);
+    }
+    return entries.reverse();
   } catch {
     return [];
   }

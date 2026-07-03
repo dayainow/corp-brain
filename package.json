@@ -20,6 +20,9 @@
     "harness:quality": "tsx scripts/run-quality-harness.ts",
     "deploy:compose": "bash scripts/deploy-compose.sh",
     "smoke:compose": "bash scripts/pilot-compose-smoke.sh",
+    "pilot:preflight": "bash scripts/pilot-preflight.sh",
+    "health:watch": "bash scripts/health-watch.sh",
+    "report:feedback": "tsx scripts/report-feedback.ts",
     "quality:loop": "npm run lint && npm test && npm run harness:quality && npm run build && npm run test:e2e",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"

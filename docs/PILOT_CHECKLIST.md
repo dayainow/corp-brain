@@ -2,7 +2,7 @@
 
 > **대상**: NovaPay 파일럿 오픈 (50명)  
 > **작성일**: 2026-07-03  
-> **상세 운영**: [RUNBOOK.md](./RUNBOOK.md) · **배포**: [DEPLOY.md](./DEPLOY.md)
+> **상세 운영**: [RUNBOOK.md](./RUNBOOK.md) · **배포**: [DEPLOY.md](./DEPLOY.md) · **오픈 가이드**: [PILOT_OPEN.md](./PILOT_OPEN.md)
 
 ---
 
@@ -16,6 +16,7 @@
 | A4 | `VECTOR_STORE=pgvector`, `REDIS_URL` 설정 | ☐ | DevOps |
 | A5 | **Sync Vault** 1회 (admin UI 또는 `npm run index:vault`) | ☐ | RAG |
 | A6 | `/api/health` → `status: ok`, `chunkCount > 0` | ☐ | L1 |
+| A6b | `npm run pilot:preflight` PASS | ☐ | L1 |
 | A7 | `EVAL_HIT3_THRESHOLD=0.8 npm run eval:search` 통과 | ☐ | RAG |
 | A7b | `npm run smoke:compose` PASS (선택·권장) | ☐ | DevOps |
 | A8 | 시드 계정·RBAC 3종 — `npm run test:e2e` (pilot.spec, auth) | ☐ | QA |
@@ -30,7 +31,7 @@
 |---|------|:----:|------|
 | B1 | 파일럿 대상자 계정·역할 배포 (또는 Google SSO `@novapay.kr`) | ☐ | IT |
 | B2 | `/guide` 인앱 가이드·예시 질문 안내 메일/Slack | ☐ | PM |
-| B3 | health 모니터링 시작 (15분 간격 또는 알림) | ☐ | L1 |
+| B3 | health 모니터링 시작 (`npm run health:watch`, 15분 간격) | ☐ | L1 |
 | B4 | Slack `/corpbrain` (사용 시) 1건 스모크 | ☐ | 플랫폼 |
 | B5 | 장애 시 Runbook §4·§7 에스컬레이션 경로 공지 | ☐ | 서비스 오너 |
 
@@ -49,7 +50,7 @@
 | # | 항목 | 확인 | 담당 |
 |---|------|:----:|------|
 | C1 | 일일 health 점검 ([RUNBOOK §2](./RUNBOOK.md)) | ☐ | L1 |
-| C2 | 👍/👎 피드백·`audit.log` 이상 없음 | ☐ | RAG |
+| C2 | 👍/👎 피드백 — `/admin` 또는 `npm run report:feedback` | ☐ | RAG |
 | C3 | vault 문서 변경 시 Sync Vault 반영 | ☐ | admin |
 | C4 | 실패 질문 5건 수집 → eval 문항·동의어 보완 검토 | ☐ | RAG |
 | C5 | Hit@3 재측정 (문서·설정 변경 시) | ☐ | RAG |
