@@ -8,7 +8,7 @@
 
 | 서비스 | 역할 | 포트 |
 |--------|------|------|
-| **app** | Next.js standalone | 3000 |
+| **app** | Next.js standalone | **3100** (호스트) → 3000 (컨테이너) |
 | **postgres** | PgVector (벡터 영속화) | **5433** (호스트) → 5432 (컨테이너) |
 | **redis** | Rate limit (다중 인스턴스 공유) | 6379 |
 | **Ollama** (호스트) | LLM `llama3` | 11434 |
@@ -87,8 +87,10 @@ VECTOR_STORE=pgvector npm run db:migrate
 ## 5. Health 체크
 
 ```bash
-curl http://localhost:3000/api/health
+curl http://localhost:3100/api/health
 ```
+
+> 개발 서버(`npm run dev`)는 `:3000`, Compose 운영은 `:3100`, E2E는 `:3001`을 사용합니다.
 
 | status | 의미 |
 |--------|------|

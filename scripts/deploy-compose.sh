@@ -19,6 +19,14 @@ if [[ -z "${AUTH_SECRET:-}" ]]; then
   exit 1
 fi
 
+if [[ -f config/env/compose.host.env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source config/env/compose.host.env
+  set +a
+fi
+export COMPOSE_APP_PORT="${COMPOSE_APP_PORT:-3100}"
+
 echo "==> Docker Compose 인프라 기동 (postgres + redis)"
 docker compose up -d postgres redis
 
@@ -39,11 +47,13 @@ for i in {1..40}; do
     echo "OK: app container /api/health"
     docker compose exec -T app curl -fsS http://localhost:3000/api/health | head -c 400
     echo ""
-    if curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1; then
-      echo "OK: host http://127.0.0.1:3000/api/health"
+    if curl -fsS "http://127.0.0.1:${COMPOSE_APP_PORT}/api/health" >/dev/null 2>&1; then
+      echo "OK: host http://127.0.0.1:${COMPOSE_APP_PORT}/api/health"
     else
-      echo "WARN: 호스트 :3000 미응답 — 다른 프로세스가 포트를 점유 중일 수 있습니다 (lsof -i :3000)"
+      echo "WARN: 호스트 :${COMPOSE_APP_PORT} 미응답 — docker compose ps app 확인"
     fi
+    echo ""
+    echo "접속: http://localhost:${COMPOSE_APP_PORT}"
     echo ""
     echo "다음 단계:"
     echo "  1. Ollama 실행: ollama run llama3"

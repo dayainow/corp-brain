@@ -9,7 +9,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-BASE_URL="${BASE_URL:-http://localhost:3000}"
 RUN_FULL=false
 RUN_E2E=false
 PASS=0
@@ -27,6 +26,18 @@ for arg in "$@"; do
     *) echo "Unknown option: $arg"; exit 1 ;;
   esac
 done
+
+if [[ "$RUN_FULL" == true ]]; then
+  if [[ -f config/env/compose.host.env ]]; then
+    set -a
+    # shellcheck disable=SC1091
+    source config/env/compose.host.env
+    set +a
+  fi
+  BASE_URL="${BASE_URL:-${AUTH_URL:-http://localhost:3100}}"
+else
+  BASE_URL="${BASE_URL:-http://localhost:3000}"
+fi
 
 log_pass() { echo "✓ $1"; PASS=$((PASS + 1)); }
 log_fail() { echo "✗ $1"; FAIL=$((FAIL + 1)); }

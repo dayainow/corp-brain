@@ -32,7 +32,10 @@
 ### 2.1 헬스체크
 
 ```bash
+# 개발 서버
 curl -s http://localhost:3000/api/health | jq .
+# Compose 운영
+curl -s http://localhost:3100/api/health | jq .
 ```
 
 | `status` | HTTP | 의미 | 조치 |
@@ -71,14 +74,15 @@ npm run pilot:preflight -- --full    # + smoke:compose
 **health 주기 알림** (15분 기본)
 
 ```bash
-export BASE_URL=http://localhost:3000
+# Compose 운영 모니터링
+export BASE_URL=http://localhost:3100
 export HEALTH_ALERT_WEBHOOK_URL=https://hooks.slack.com/...  # 또는 AUDIT_WEBHOOK_URL
 npm run health:watch
 ```
 
 | 환경 변수 | 기본값 | 설명 |
 |-----------|--------|------|
-| `BASE_URL` | `http://localhost:3000` | 헬스 폴링 대상 |
+| `BASE_URL` | `http://localhost:3000` (dev) · Compose는 `3100` | 헬스 폴링 대상 |
 | `INTERVAL_SEC` | `900` | 폴링 간격(초) |
 | `HEALTH_ALERT_WEBHOOK_URL` | — | Slack Incoming Webhook (우선) |
 | `AUDIT_WEBHOOK_URL` | — | 웹훅 미설정 시 대체 |

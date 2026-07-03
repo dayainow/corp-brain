@@ -18,6 +18,7 @@ jobs:
     timeout-minutes: 45
     env:
       AUTH_SECRET: ci-compose-smoke-secret-32chars-min
+      COMPOSE_APP_PORT: "3100"
 
     steps:
       - uses: actions/checkout@v4
@@ -61,14 +62,16 @@ jobs:
         run: docker compose up -d --build app
 
       - name: Health 검증 (pgvector · redis · postgres)
+        env:
+          COMPOSE_APP_PORT: "3100"
         run: |
           for i in $(seq 1 30); do
-            if curl -fsS http://localhost:3000/api/health >/dev/null 2>&1; then
+            if curl -fsS "http://localhost:${COMPOSE_APP_PORT}/api/health" >/dev/null 2>&1; then
               break
             fi
             sleep 3
           done
-          curl -fsS http://localhost:3000/api/health | node -e "
+          curl -fsS "http://localhost:${COMPOSE_APP_PORT}/api/health" | node -e "
             const h = JSON.parse(require('fs').readFileSync(0,'utf8'));
             const c = h.checks || {};
             const fail = [];

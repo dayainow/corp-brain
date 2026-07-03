@@ -33,10 +33,10 @@ services:
     build: .
     container_name: corpbrain-app
     ports:
-      - "3000:3000"
+      - "${COMPOSE_APP_PORT:-3100}:3000"
     environment:
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET is required}
-      AUTH_URL: http://localhost:3000
+      AUTH_URL: http://localhost:${COMPOSE_APP_PORT:-3100}
       VAULT_PATH: ./vault
       EMBEDDING_MODEL: Xenova/multilingual-e5-small
       VECTOR_STORE: pgvector

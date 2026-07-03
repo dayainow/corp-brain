@@ -9,7 +9,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-BASE_URL="${BASE_URL:-http://localhost:3000}"
 SKIP_DEPLOY=false
 INDEX_ONLY=false
 PASS=0
@@ -27,6 +26,20 @@ for arg in "$@"; do
     *) echo "Unknown option: $arg"; exit 1 ;;
   esac
 done
+
+load_compose_host_env() {
+  if [[ -f "$ROOT/config/env/compose.host.env" ]]; then
+    set -a
+    # shellcheck disable=SC1091
+    source "$ROOT/config/env/compose.host.env"
+    set +a
+  fi
+  COMPOSE_APP_PORT="${COMPOSE_APP_PORT:-3100}"
+  export COMPOSE_APP_PORT AUTH_URL
+}
+
+load_compose_host_env
+BASE_URL="${BASE_URL:-${AUTH_URL:-http://localhost:3100}}"
 
 log_pass() { echo "✓ $1"; PASS=$((PASS + 1)); }
 log_fail() { echo "✗ $1"; FAIL=$((FAIL + 1)); }
@@ -81,21 +94,6 @@ check_ollama() {
   return 1
 }
 
-stop_dev_server_on_3000() {
-  local pids
-  pids=$(lsof -ti :3000 2>/dev/null || true)
-  if [[ -z "$pids" ]]; then return 0; fi
-  for pid in $pids; do
-    local cmd
-    cmd=$(ps -p "$pid" -o comm= 2>/dev/null || true)
-    if [[ "$cmd" == *"node"* ]]; then
-      log_warn "포트 3000 점유 PID $pid 종료 — Compose 스모크용"
-      kill "$pid" 2>/dev/null || true
-    fi
-  done
-  sleep 2
-}
-
 compose_health_body() {
   if docker compose ps app --status running -q 2>/dev/null | grep -q .; then
     docker compose exec -T app curl -fsS http://localhost:3000/api/health 2>/dev/null && return 0
@@ -104,7 +102,6 @@ compose_health_body() {
 }
 
 deploy_compose() {
-  stop_dev_server_on_3000
   echo ""
   echo "==> A3: Compose 배포 (postgres + redis + app)"
   export AUTH_SECRET
@@ -113,16 +110,6 @@ deploy_compose() {
     return 1
   fi
   log_pass "deploy-compose.sh 완료"
-}
-
-load_compose_host_env() {
-  if [[ -f "$ROOT/config/env/compose.host.env" ]]; then
-    set -a
-    # shellcheck disable=SC1091
-    source "$ROOT/config/env/compose.host.env"
-    set +a
-  fi
-  export AUTH_SECRET
 }
 
 index_pgvector() {
