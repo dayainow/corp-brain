@@ -55,6 +55,10 @@ while [[ $i -lt ${#args[@]} ]]; do
   i=$((i + 1))
 done
 
+if [[ -z "$WEBHOOK_URL" ]]; then
+  WEBHOOK_URL="${HEALTH_ALERT_WEBHOOK_URL:-${AUDIT_WEBHOOK_URL:-}}"
+fi
+
 touch "$ENV_FILE"
 
 get_env() {
@@ -91,8 +95,7 @@ echo "CorpBrain A10 웹훅 설정·검증"
 echo ""
 
 if [[ "$VERIFY_ONLY" == true ]]; then
-  load_pilot_secrets
-  WEBHOOK_URL="${HEALTH_ALERT_WEBHOOK_URL:-${AUDIT_WEBHOOK_URL:-}}"
+  WEBHOOK_URL="${WEBHOOK_URL:-${HEALTH_ALERT_WEBHOOK_URL:-${AUDIT_WEBHOOK_URL:-}}}"
   if [[ -z "$WEBHOOK_URL" ]]; then
     echo "오류: .env.local에 HEALTH_ALERT_WEBHOOK_URL 없음"
     exit 1
