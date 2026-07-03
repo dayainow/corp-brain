@@ -7,6 +7,8 @@ export interface RagSourceCard {
   fileName: string;
   displayName: string;
   snippet: string;
+  /** RAG 검색 청크 전문 — 원문 하이라이트용 */
+  chunkText: string;
 }
 
 export type CorpBrainUIMessage = UIMessage<
@@ -27,15 +29,25 @@ export function buildRagSourceCards(docs: VectorDocument[]): RagSourceCard[] {
   for (const doc of docs) {
     const fileName = String(doc.metadata.fileName ?? "");
     if (!fileName || byFile.has(fileName)) continue;
-    const snippet = doc.text.replace(/\s+/g, " ").trim().slice(0, 120);
-    byFile.set(fileName, snippet);
+    byFile.set(fileName, doc.text);
   }
 
-  return [...byFile.entries()].map(([fileName, snippet]) => ({
+  return [...byFile.entries()].map(([fileName, chunkText]) => ({
     fileName,
     displayName: displaySourceName(fileName),
-    snippet,
+    snippet: chunkText.replace(/\s+/g, " ").trim().slice(0, 120),
+    chunkText,
   }));
+}
+
+export function buildSourceHighlightMap(
+  sources: RagSourceCard[]
+): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const source of sources) {
+    map[source.fileName] = source.chunkText;
+  }
+  return map;
 }
 
 export function extractRagSourcesFromParts(

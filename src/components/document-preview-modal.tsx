@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FileText, Loader2, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-
-function displaySourceName(fileName: string): string {
-  return fileName.replace(/\.(md|pdf|docx)$/i, "");
-}
+import { findChunkHighlightRange } from "@/lib/documents/highlight-chunk";
+import type { DocumentPreviewTarget } from "@/lib/documents/preview-target";
+import { displaySourceName } from "@/lib/chat/ui-message";
 
 interface DocumentPreviewModalProps {
-  fileName: string | null;
+  target: DocumentPreviewTarget | null;
   onClose: () => void;
 }
 
@@ -22,7 +21,91 @@ interface PreviewState {
   content: string;
 }
 
-function DocumentPreviewBody({ fileName }: { fileName: string }) {
+function ChunkFallbackBanner({ text }: { text: string }) {
+  return (
+    <div className="mb-4 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 px-3 py-2">
+      <p className="text-xs font-medium text-amber-800 dark:text-amber-200">
+        검색된 구간 (원문 본문에서 정확히 찾지 못함)
+      </p>
+      <p className="mt-1 text-sm text-amber-900 dark:text-amber-100 whitespace-pre-wrap leading-relaxed">
+        {text}
+      </p>
+    </div>
+  );
+}
+
+function HighlightedMarkdown({
+  content,
+  range,
+  highlightRef,
+}: {
+  content: string;
+  range: { start: number; end: number };
+  highlightRef: React.RefObject<HTMLElement | null>;
+}) {
+  const before = content.slice(0, range.start);
+  const highlight = content.slice(range.start, range.end);
+  const after = content.slice(range.end);
+
+  return (
+    <div className="prose prose-sm dark:prose-invert max-w-none [&_p]:my-2 [&_ul]:my-2">
+      {before.trim() ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{before}</ReactMarkdown> : null}
+      <div className="my-3 rounded-lg border-2 border-yellow-400/80 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-950/50 px-3 py-2 scroll-mt-4">
+        <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-200 mb-1.5 not-prose">
+          검색된 구간
+        </p>
+        <mark
+          ref={highlightRef}
+          className="block whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-800 dark:text-slate-100 bg-transparent not-prose"
+        >
+          {highlight}
+        </mark>
+      </div>
+      {after.trim() ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{after}</ReactMarkdown> : null}
+    </div>
+  );
+}
+
+function HighlightedPlainText({
+  content,
+  range,
+  highlightRef,
+}: {
+  content: string;
+  range: { start: number; end: number };
+  highlightRef: React.RefObject<HTMLElement | null>;
+}) {
+  const before = content.slice(0, range.start);
+  const highlight = content.slice(range.start, range.end);
+  const after = content.slice(range.end);
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
+        검색된 구간
+      </p>
+      <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+        {before}
+        <mark
+          ref={highlightRef}
+          className="rounded-sm bg-yellow-200 dark:bg-yellow-700/60 text-slate-900 dark:text-slate-50 px-0.5 scroll-mt-4"
+        >
+          {highlight}
+        </mark>
+        {after}
+      </pre>
+    </div>
+  );
+}
+
+function DocumentPreviewBody({
+  fileName,
+  highlightText,
+}: {
+  fileName: string;
+  highlightText?: string;
+}) {
+  const highlightRef = useRef<HTMLElement>(null);
   const [state, setState] = useState<PreviewState>({
     loading: true,
     error: null,
@@ -69,6 +152,19 @@ function DocumentPreviewBody({ fileName }: { fileName: string }) {
     };
   }, [fileName]);
 
+  const highlightRange = useMemo(() => {
+    if (!state.content || !highlightText?.trim()) return null;
+    return findChunkHighlightRange(state.content, highlightText);
+  }, [state.content, highlightText]);
+
+  useEffect(() => {
+    if (!highlightRange || state.loading) return;
+    const timer = window.setTimeout(() => {
+      highlightRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+    return () => window.clearTimeout(timer);
+  }, [highlightRange, state.loading, fileName]);
+
   const isMarkdown = state.fileType === "md" || state.fileType === "markdown";
 
   return (
@@ -83,31 +179,52 @@ function DocumentPreviewBody({ fileName }: { fileName: string }) {
         <p className="text-sm text-red-600 dark:text-red-400 py-4">{state.error}</p>
       )}
       {!state.loading && !state.error && state.content && (
-        isMarkdown ? (
-          <div className="prose prose-sm dark:prose-invert max-w-none [&_p]:my-2 [&_ul]:my-2">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.content}</ReactMarkdown>
-          </div>
-        ) : (
-          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-            {state.content}
-          </pre>
-        )
+        <>
+          {highlightText && !highlightRange && (
+            <ChunkFallbackBanner text={highlightText} />
+          )}
+          {highlightRange ? (
+            isMarkdown ? (
+              <HighlightedMarkdown
+                content={state.content}
+                range={highlightRange}
+                highlightRef={highlightRef}
+              />
+            ) : (
+              <HighlightedPlainText
+                content={state.content}
+                range={highlightRange}
+                highlightRef={highlightRef}
+              />
+            )
+          ) : isMarkdown ? (
+            <div className="prose prose-sm dark:prose-invert max-w-none [&_p]:my-2 [&_ul]:my-2">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.content}</ReactMarkdown>
+            </div>
+          ) : (
+            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+              {state.content}
+            </pre>
+          )}
+        </>
       )}
     </div>
   );
 }
 
-export function DocumentPreviewModal({ fileName, onClose }: DocumentPreviewModalProps) {
+export function DocumentPreviewModal({ target, onClose }: DocumentPreviewModalProps) {
   useEffect(() => {
-    if (!fileName) return;
+    if (!target) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [fileName, onClose]);
+  }, [target, onClose]);
 
-  if (!fileName) return null;
+  if (!target) return null;
+
+  const { fileName, highlightText } = target;
 
   return (
     <div
@@ -147,7 +264,11 @@ export function DocumentPreviewModal({ fileName, onClose }: DocumentPreviewModal
           </button>
         </div>
 
-        <DocumentPreviewBody key={fileName} fileName={fileName} />
+        <DocumentPreviewBody
+          key={`${fileName}:${highlightText ?? ""}`}
+          fileName={fileName}
+          highlightText={highlightText}
+        />
       </div>
     </div>
   );

@@ -5,10 +5,9 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Database } from "lucide-react";
 import { DocumentPreviewModal } from "@/components/document-preview-modal";
-
-function displaySourceName(fileName: string): string {
-  return fileName.replace(/\.(md|pdf|docx)$/i, "");
-}
+import type { DocumentPreviewTarget } from "@/lib/documents/preview-target";
+import { resolveChunkHighlight } from "@/lib/documents/preview-target";
+import { displaySourceName } from "@/lib/chat/ui-message";
 
 function CitationBadge({
   sourceName,
@@ -32,9 +31,22 @@ function CitationBadge({
 }
 
 /** 마크다운 + [출처: ...] 뱃지를 함께 렌더링 */
-export function ChatMessageContent({ content }: { content: string }) {
-  const [previewFileName, setPreviewFileName] = useState<string | null>(null);
+export function ChatMessageContent({
+  content,
+  sourceHighlights,
+}: {
+  content: string;
+  sourceHighlights?: Record<string, string>;
+}) {
+  const [previewTarget, setPreviewTarget] = useState<DocumentPreviewTarget | null>(null);
   const parts = content.split(/(\[출처:\s*[^\]]+\])/g);
+
+  const openPreview = (fileName: string) => {
+    setPreviewTarget({
+      fileName,
+      highlightText: resolveChunkHighlight(fileName, sourceHighlights),
+    });
+  };
 
   return (
     <>
@@ -46,7 +58,7 @@ export function ChatMessageContent({ content }: { content: string }) {
               <CitationBadge
                 key={index}
                 sourceName={sourceName}
-                onPreview={setPreviewFileName}
+                onPreview={openPreview}
               />
             );
           }
@@ -59,8 +71,8 @@ export function ChatMessageContent({ content }: { content: string }) {
         })}
       </div>
       <DocumentPreviewModal
-        fileName={previewFileName}
-        onClose={() => setPreviewFileName(null)}
+        target={previewTarget}
+        onClose={() => setPreviewTarget(null)}
       />
     </>
   );

@@ -26,6 +26,7 @@ describe("buildRagSourceCards", () => {
       fileName: "연차휴가규정.md",
       displayName: "연차휴가규정",
       snippet: "연차는 15일입니다.",
+      chunkText: "연차는 15일입니다.",
     });
   });
 });
@@ -36,7 +37,14 @@ describe("extractRagSourcesFromParts", () => {
       {
         type: "data-rag-sources",
         data: {
-          sources: [{ fileName: "a.md", displayName: "a", snippet: "내용" }],
+          sources: [
+            {
+              fileName: "a.md",
+              displayName: "a",
+              snippet: "내용",
+              chunkText: "내용 전문",
+            },
+          ],
         },
       },
     ]);

@@ -19,6 +19,7 @@ import type { UserRole } from "@/lib/rbac";
 import { extractMessageText } from "@/lib/chat/messages";
 import {
   extractRagSourcesFromParts,
+  buildSourceHighlightMap,
   type CorpBrainUIMessage,
   type RagStreamPhase,
 } from "@/lib/chat/ui-message";
@@ -276,6 +277,8 @@ export default function Chat() {
             const assistantText = m.role === "assistant" ? getMessageText(m) : "";
             const ragSources =
               m.role === "assistant" ? extractRagSourcesFromParts(m.parts) : [];
+            const sourceHighlights =
+              ragSources.length > 0 ? buildSourceHighlightMap(ragSources) : undefined;
             const assistantSources = assistantText
               ? extractSourcesFromContent(assistantText)
               : ragSources.map((s) => s.fileName);
@@ -301,7 +304,10 @@ export default function Chat() {
                         <CitationSourceCards sources={ragSources} />
                       )}
                       {assistantText.trim() ? (
-                        <ChatMessageContent content={assistantText} />
+                        <ChatMessageContent
+                          content={assistantText}
+                          sourceHighlights={sourceHighlights}
+                        />
                       ) : showStreamingStatus ? (
                         <ChatStreamingStatus phase={resolveStreamPhase(status, ragPhase)} />
                       ) : null}

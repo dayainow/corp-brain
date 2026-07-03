@@ -25,6 +25,51 @@ test.describe("출처 원문 보기", () => {
     await expect(dialog.locator(".prose p, pre").first()).toBeVisible();
   });
 
+  test("RAG 청크가 있으면 원문 모달에 검색 구간이 하이라이트된다", async ({ page }) => {
+    await page.evaluate(() => {
+      localStorage.setItem(
+        "chat-session",
+        JSON.stringify([
+          {
+            id: "e2e-user-hl",
+            role: "user",
+            parts: [{ type: "text", text: "연차 규정" }],
+          },
+          {
+            id: "e2e-assistant-hl",
+            role: "assistant",
+            parts: [
+              {
+                type: "data-rag-sources",
+                data: {
+                  sources: [
+                    {
+                      fileName: "연차휴가규정.md",
+                      displayName: "연차휴가규정",
+                      snippet: "입사 후 1년 이상",
+                      chunkText:
+                        "입사 후 1년 이상이 된 직원은 15일의 기본 연차가 발생하며",
+                    },
+                  ],
+                },
+              },
+              {
+                type: "text",
+                text: "연차는 15일입니다. [출처: 연차휴가규정.md]",
+              },
+            ],
+          },
+        ])
+      );
+    });
+    await page.reload();
+    await page.getByRole("button", { name: "연차휴가규정 원문 보기" }).click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText("검색된 구간")).toBeVisible({ timeout: 15_000 });
+    await expect(dialog.getByText("15일의 기본 연차")).toBeVisible();
+  });
+
   test("Escape로 원문 모달을 닫을 수 있다", async ({ page }) => {
     await page.getByRole("button", { name: "연차휴가규정 원문 보기" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
