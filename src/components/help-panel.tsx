@@ -60,7 +60,7 @@ export function HelpPanel({
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          <nav className="w-36 shrink-0 border-r border-slate-200 dark:border-slate-800 overflow-y-auto p-2 space-y-1">
+          <nav className="w-36 shrink-0 border-r border-slate-200 dark:border-slate-800 overflow-y-auto scrollbar-themed p-2 space-y-1">
             {sections.map((section) => (
               <button
                 key={section.id}
@@ -77,7 +77,7 @@ export function HelpPanel({
             ))}
           </nav>
 
-          <div className="flex-1 overflow-y-auto p-5">
+          <div className="flex-1 overflow-y-auto scrollbar-themed p-5">
             {active && (
               <>
                 <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-1">

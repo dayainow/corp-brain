@@ -4,6 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:fast": "bash scripts/use-env-preset.sh fast && next dev",
+    "dev:quality": "bash scripts/use-env-preset.sh quality && next dev",
+    "env:fast": "bash scripts/use-env-preset.sh fast",
+    "env:quality": "bash scripts/use-env-preset.sh quality",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

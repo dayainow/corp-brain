@@ -148,7 +148,7 @@ export default function AdminPage() {
             <h2 className="font-semibold mb-4 flex items-center gap-2">
               <Activity className="w-4 h-4" /> 최근 감사 로그
             </h2>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-themed">
               {logs.length === 0 ? (
                 <p className="text-sm text-slate-400">로그가 없습니다.</p>
               ) : (
@@ -175,7 +175,7 @@ export default function AdminPage() {
             <h2 className="font-semibold mb-4 flex items-center gap-2">
               <FileText className="w-4 h-4" /> 문서 목록
             </h2>
-            <div className="space-y-1 max-h-96 overflow-y-auto">
+            <div className="space-y-1 max-h-96 overflow-y-auto scrollbar-themed">
               {docs.map((doc) => (
                 <div key={doc.path} className="flex items-center justify-between text-sm p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-800">
                   <div>

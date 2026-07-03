@@ -5,7 +5,8 @@
 
 > 타깃: 주식회사 노바페이 — B2B 결제·정산 FinTech (320명)  
 > 상세 계획·설계 다이어gram: [`docs/UPGRADE_PLAN.md`](docs/UPGRADE_PLAN.md)  
-> **납품 산출물 (11종)**: [`docs/deliverables/README.md`](docs/deliverables/README.md)
+> **납품 산출물 (11종)**: [`docs/deliverables/README.md`](docs/deliverables/README.md)  
+> **운영 Runbook**: [`docs/RUNBOOK.md`](docs/RUNBOOK.md)
 
 ---
 

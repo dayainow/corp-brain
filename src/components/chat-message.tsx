@@ -4,11 +4,15 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Database } from "lucide-react";
 
+function displaySourceName(fileName: string): string {
+  return fileName.replace(/\.(md|pdf|docx)$/i, "");
+}
+
 function CitationBadge({ sourceName }: { sourceName: string }) {
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 ml-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-semibold rounded-full border border-blue-200 dark:border-blue-800">
       <Database className="w-3 h-3" />
-      {sourceName}
+      {displaySourceName(sourceName)}
     </span>
   );
 }
