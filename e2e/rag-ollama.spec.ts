@@ -19,7 +19,7 @@ test.describe("Ollama RAG E2E (실제 스트리밍)", () => {
     }
   });
 
-  test.beforeEach(async ({}, testInfo) => {
+  test.beforeEach(async ({}) => {
     test.skip(!ragStatus.ready, ragStatus.reason ?? "RAG E2E prerequisites not met");
   });
 
