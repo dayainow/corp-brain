@@ -25,7 +25,9 @@ export const config = {
   },
   vectorStore: {
     type: (process.env.VECTOR_STORE ?? "json") as "json" | "pgvector",
-    jsonPath: resolvePath("src/data/vectors.json"),
+    jsonPath: process.env.VECTOR_JSON_PATH
+      ? path.resolve(/* turbopackIgnore: true */ process.cwd(), process.env.VECTOR_JSON_PATH)
+      : resolvePath("src/data/vectors.json"),
     databaseUrl: process.env.DATABASE_URL,
   },
   audit: {

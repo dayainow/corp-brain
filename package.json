@@ -16,6 +16,7 @@
     "db:init": "tsx scripts/init-db.ts",
     "db:migrate": "tsx scripts/migrate-to-pgvector.ts",
     "eval:search": "tsx scripts/eval-search.ts",
+    "eval:embedding-ab": "tsx scripts/eval-embedding-ab.ts",
     "index:vault": "tsx scripts/index-vault.ts",
     "harness:quality": "tsx scripts/run-quality-harness.ts",
     "deploy:compose": "bash scripts/deploy-compose.sh",

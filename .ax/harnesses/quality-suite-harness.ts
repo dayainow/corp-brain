@@ -41,7 +41,10 @@ export function runPlatformChecks(): HarnessCheckResult[] {
     {
       check: "embeddingModelConfig",
       team: "delivery",
-      passed: config.rag.embeddingModel.includes("e5") || config.rag.embeddingModel.includes("MiniLM"),
+      passed:
+        config.rag.embeddingModel.includes("e5") ||
+        config.rag.embeddingModel.includes("MiniLM") ||
+        config.rag.embeddingModel.includes("sroberta"),
       detail: config.rag.embeddingModel,
     },
   ];

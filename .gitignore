@@ -40,6 +40,7 @@ yarn-error.log*
 /data/*
 !/data/eval-queries.json
 /src/data/vectors.json
+/src/data/vectors.ko-sroberta.json
 /data/index-manifest.json
 
 # typescript

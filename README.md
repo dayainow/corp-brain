@@ -545,7 +545,7 @@ corp-brain/
 - [x] Cross-encoder 옵션형 리랭킹 경로 추가
 - [ ] Cross-encoder ON/OFF A/B 평가 자동화
 - [ ] Microsoft Teams 봇
-- [ ] `ko-sroberta` 임베딩 A/B
+- [x] `ko-sroberta` 임베딩 A/B (`npm run eval:embedding-ab`)
 - [ ] K8s 배포, 2FA TOTP, 멀티 테넌트
 
 ---

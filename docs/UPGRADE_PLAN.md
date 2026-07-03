@@ -96,7 +96,7 @@
 - [x] 채팅 👍/👎 피드백 → audit.log
 - [x] Slack Role 매핑 + Ollama 답변 생성
 - [x] 한국어 쿼리 정규화·동의어 리랭킹
-- [ ] `ko-sroberta` 임베딩 A/B 테스트
+- [x] `ko-sroberta` 임베딩 A/B 테스트 (`npm run eval:embedding-ab`)
 
 ### Phase 5 — 확장 (향후)
 

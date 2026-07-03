@@ -131,6 +131,7 @@ EVAL_HIT3_THRESHOLD=0.8 npm run eval:search   # Hit@3만
 | `npm run report:feedback` | 피드백 마크다운 리포트 |
 | `npm run smoke:compose` | Compose 운영 스모크 |
 | `GET /api/admin/feedback` | Admin API (admin 권한) |
+| `npm run eval:embedding-ab` | e5 vs ko-sroberta Hit@3 A/B (개발 검증) |
 
 ---
 
