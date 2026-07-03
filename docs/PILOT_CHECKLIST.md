@@ -17,7 +17,7 @@
 | A5 | **Sync Vault** 1회 (admin UI 또는 `npm run index:vault`) | ☐ | RAG |
 | A6 | `/api/health` → `status: ok`, `chunkCount > 0` | ☐ | L1 |
 | A6b | `npm run pilot:preflight` PASS | ☐ | L1 |
-| A7 | `EVAL_HIT3_THRESHOLD=0.8 npm run eval:search` 통과 | ☐ | RAG |
+| A7 | `npm run harness:quality` 또는 `npm run quality:gate` — Hit@3 ≥ 80% | ☐ | RAG |
 | A7b | `npm run smoke:compose` PASS (선택·권장) | ☐ | DevOps |
 | A8 | 시드 계정·RBAC 3종 — `npm run test:e2e` (pilot.spec, auth) | ☐ | QA |
 | A9 | 샘플 질문·출처 뱃지 — `e2e/citation-preview.spec.ts` 또는 `npm run test:e2e:rag` (Ollama 기동 시) | ☐ | QA |

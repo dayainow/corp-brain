@@ -335,7 +335,9 @@ SLACK_USER_MAP={"U01234":"lee.minho@novapay.kr"}
 | `npm run eval:search` | 검색 품질 CLI 평가 (Hit@3 게이트, 기본 80%) |
 | `npm run index:vault` | vault 전체 인덱싱 |
 | `npm run index:vault -- --incremental` | vault 증분 인덱싱 |
-| `npm run harness:quality` | 5팀 품질 하네스 실행 |
+| `npm run harness:quality` | 5팀 하네스 (Hit@3·인덱스·RBAC, `index:vault` 선행) |
+| `npm run quality:gate` | index:vault + harness (배포·PR 전 권장) |
+| `npm run quality:full` | quality:gate + quality:loop (전체) |
 | `npm run quality:loop` | lint → test → harness → build → e2e |
 | `npm run db:init` | PgVector 스키마 생성 |
 | `npm run db:migrate` | vectors.json → PgVector 이전 |

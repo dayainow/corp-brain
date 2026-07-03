@@ -86,10 +86,24 @@ check_ollama() {
   fi
 }
 
+check_search_quality() {
+  if [[ ! -f src/data/vectors.json ]]; then
+    log_warn "vectors.json 없음 — npm run quality:gate"
+    return 0
+  fi
+  echo ""
+  echo "── harness:quality (Hit@3) ──"
+  if EVAL_HIT3_THRESHOLD="${EVAL_HIT3_THRESHOLD:-0.8}" npm run harness:quality; then
+    log_pass "검색 품질 harness (Hit@3 ≥ ${EVAL_HIT3_THRESHOLD:-0.8})"
+  else
+    log_fail "harness:quality / Hit@3 미달"
+  fi
+}
+
 print_next_steps() {
   echo ""
   echo "── 다음 단계 (수동) ──"
-  echo "  A7  EVAL_HIT3_THRESHOLD=0.8 npm run eval:search"
+  echo "  A7  npm run harness:quality  (또는 npm run quality:gate)"
   echo "  A7b npm run smoke:compose          # Compose 운영 스모크"
   echo "  A8  npm run test:e2e -- e2e/pilot.spec.ts e2e/auth.spec.ts"
   echo "  A9  npm run test:e2e:rag              # Ollama RAG (ollama + index:vault)"
@@ -105,6 +119,7 @@ echo ""
 check_auth_secret || true
 check_health || true
 check_ollama || true
+check_search_quality || true
 
 if [[ "$RUN_FULL" == true ]]; then
   echo ""

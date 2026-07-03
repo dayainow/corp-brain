@@ -19,9 +19,27 @@ jobs:
 
       - run: npm ci
 
+      - name: Cache Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Vault 인덱싱 (검색 품질 게이트 선행)
+        run: npm run index:vault
+        env:
+          AUTH_SECRET: ci-test-secret-at-least-32-chars-long
+
       - run: npm run lint
 
       - run: npm test
+        env:
+          EVAL_HIT3_THRESHOLD: "0.8"
+
+      - name: Quality Harness (Hit@3 포함)
+        run: npm run harness:quality
+        env:
+          EVAL_HIT3_THRESHOLD: "0.8"
 
       - run: npm run build
         env:

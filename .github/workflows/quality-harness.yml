@@ -19,8 +19,6 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run harness:quality
-
       - name: Cache Hugging Face models
         uses: actions/cache@v4
         with:
@@ -31,6 +29,6 @@ jobs:
         env:
           AUTH_SECRET: ci-test-secret-at-least-32-chars-long
 
-      - run: npm run eval:search
+      - run: npm run harness:quality
         env:
           EVAL_HIT3_THRESHOLD: "0.8"

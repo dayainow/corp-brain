@@ -19,6 +19,8 @@
     "eval:embedding-ab": "tsx scripts/eval-embedding-ab.ts",
     "index:vault": "tsx scripts/index-vault.ts",
     "harness:quality": "tsx scripts/run-quality-harness.ts",
+    "quality:gate": "npm run index:vault && npm run harness:quality",
+    "quality:full": "npm run quality:gate && npm run quality:loop",
     "deploy:compose": "bash scripts/deploy-compose.sh",
     "smoke:compose": "bash scripts/pilot-compose-smoke.sh",
     "pilot:preflight": "bash scripts/pilot-preflight.sh",

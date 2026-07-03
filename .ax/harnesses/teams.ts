@@ -44,7 +44,7 @@ export const HARNESS_AGENTS: HarnessAgent[] = [
     team: "platform",
     name: "헬스체크 에이전트",
     focus: "vault 경로·청크 수·Ollama 연결",
-    checks: ["vaultExists", "chunkCountOrDegraded", "ollamaReachable"],
+    checks: ["vaultExists", "chunkIndexReady"],
   },
   {
     id: "search-eval",

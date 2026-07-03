@@ -7,6 +7,7 @@ import path from "path";
 import { config, getVaultPath } from "@/lib/config";
 import { canAccessDocument, canUploadDocuments, canReindexVault } from "@/lib/rbac";
 import { buildSearchQuery } from "@/lib/search/query-context";
+import { runEvalSearch } from "@/lib/search/run-eval";
 import { toModelMessages, validateChatMessages } from "@/lib/chat/messages";
 import { HARNESS_AGENTS, HARNESS_TEAMS, type HarnessTeamId } from "./teams";
 
@@ -23,14 +24,32 @@ export interface HarnessReport {
   summary: Record<HarnessTeamId, { passed: number; failed: number }>;
 }
 
+function getJsonChunkCount(): number {
+  const indexPath = config.vectorStore.jsonPath;
+  if (!fs.existsSync(indexPath)) return 0;
+  try {
+    const data = JSON.parse(fs.readFileSync(indexPath, "utf-8")) as unknown[];
+    return Array.isArray(data) ? data.length : 0;
+  } catch {
+    return 0;
+  }
+}
+
 export function runPlatformChecks(): HarnessCheckResult[] {
   const vaultPath = getVaultPath();
+  const chunkCount = getJsonChunkCount();
   return [
     {
       check: "vaultExists",
       team: "platform",
       passed: fs.existsSync(vaultPath),
       detail: vaultPath,
+    },
+    {
+      check: "chunkIndexReady",
+      team: "platform",
+      passed: chunkCount > 0,
+      detail: chunkCount > 0 ? `${chunkCount} chunks` : "npm run index:vault",
     },
     {
       check: "vaultPathDefault",
@@ -103,11 +122,37 @@ export function runRagChecks(): HarnessCheckResult[] {
   ];
 }
 
-export function runQualityHarness(): HarnessReport {
+export async function runSearchChecks(): Promise<HarnessCheckResult[]> {
+  const chunkCount = getJsonChunkCount();
+  if (chunkCount === 0) {
+    return [
+      {
+        check: "hitAt3Threshold",
+        team: "search",
+        passed: false,
+        detail: "인덱스 없음 — npm run index:vault",
+      },
+    ];
+  }
+
+  const threshold = Number(process.env.EVAL_HIT3_THRESHOLD ?? "0.8");
+  const { metrics, passed } = await runEvalSearch({ threshold });
+  return [
+    {
+      check: "hitAt3Threshold",
+      team: "search",
+      passed,
+      detail: `Hit@3 ${(metrics.hitAt3 * 100).toFixed(1)}% · ${metrics.count}문항 (≥${(threshold * 100).toFixed(0)}%)`,
+    },
+  ];
+}
+
+export async function runQualityHarness(): Promise<HarnessReport> {
   const results: HarnessCheckResult[] = [
     ...runPlatformChecks(),
     ...runSecurityChecks(),
     ...runRagChecks(),
+    ...(await runSearchChecks()),
   ];
 
   const summary = Object.keys(HARNESS_TEAMS).reduce(

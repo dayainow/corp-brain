@@ -24,7 +24,7 @@ Glean·Guru·Notion AI 패턴을 참고한 **5팀 하네스** 구성입니다.
 구현: `.ax/harnesses/teams.ts` · 실행: `.ax/harnesses/quality-suite-harness.ts`
 
 1. **헬스체크 에이전트** (플랫폼) — vault 존재, 인덱스 상태
-2. **검색 평가 에이전트** (검색품질) — eval Hit@3, 후속 질문 쿼리
+2. **검색 평가 에이전트** (검색품질) — eval Hit@3, 후속 질문 쿼리 (`harness:quality`에 통합)
 3. **RBAC 에이전트** (보안) — Role 계층·업로드·Sync Vault 권한
 4. **메시지 파이프라인 에이전트** (RAG) — UIMessage 변환
 5. **스모크 에이전트** (납품) — vault 경로·임베딩 모델 설정

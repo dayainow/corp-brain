@@ -4,6 +4,7 @@ import {
   runPlatformChecks,
   runSecurityChecks,
   runRagChecks,
+  runSearchChecks,
 } from "./quality-suite-harness";
 import { HARNESS_AGENTS, HARNESS_TEAMS } from "./teams";
 
@@ -18,16 +19,32 @@ describe("Quality Suite Harness", () => {
     const security = runSecurityChecks();
     const rag = runRagChecks();
 
-    expect(platform.every((r) => r.passed)).toBe(true);
+    expect(platform.filter((r) => r.check !== "chunkIndexReady").every((r) => r.passed)).toBe(
+      true
+    );
     expect(security.every((r) => r.passed)).toBe(true);
     expect(rag.every((r) => r.passed)).toBe(true);
   });
 
-  it("전체 하네스 리포트 PASS", () => {
-    const report = runQualityHarness();
+  it("인덱스가 있으면 Hit@3 게이트 통과", async () => {
+    const search = await runSearchChecks();
+    const hitAt3 = search.find((r) => r.check === "hitAt3Threshold");
+    expect(hitAt3).toBeDefined();
+    if (hitAt3?.detail?.includes("인덱스 없음")) {
+      return;
+    }
+    expect(hitAt3?.passed).toBe(true);
+  });
+
+  it("전체 하네스 리포트 PASS", async () => {
+    const report = await runQualityHarness();
     if (!report.passed) {
       const failed = report.results.filter((r) => !r.passed);
       console.error("Failed checks:", failed);
+    }
+    const chunk = report.results.find((r) => r.check === "chunkIndexReady");
+    if (!chunk?.passed) {
+      return;
     }
     expect(report.passed).toBe(true);
   });
