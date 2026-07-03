@@ -4,7 +4,7 @@
 |------|------|
 | 프로젝트명 | CorpBrain |
 | Base URL | `http://localhost:3000` (개발) |
-| 문서 버전 | v1.1 |
+| 문서 버전 | v1.2 |
 | 작성일 | 2026-07-03 |
 
 ---
@@ -52,7 +52,7 @@
 | GET | `/api/health` | 공개 | 헬스체크 |
 | GET | `/api/admin/audit` | admin | 감사 로그 |
 | GET | `/api/admin/documents` | admin | 문서 통계 |
-| GET | `/api/admin/metrics` | admin | 검색 메트릭 |
+| GET | `/api/admin/feedback` | admin | 피드백 집계·👎 Top 질문 |
 | POST | `/api/slack/command` | Slack HMAC | Slash Command |
 | POST | `/api/auth/audit` | 로그인 | 로그인 감사 |
 
@@ -74,9 +74,40 @@
 }
 ```
 
-**Response**: `text/event-stream` (AI SDK UIMessage stream)
+**Response**: `text/event-stream` (AI SDK `createUIMessageStreamResponse`)
 
-**처리 흐름**: `buildSearchQuery` → `retrieveRagContext` → `streamRagResponse`
+**처리 흐름**: `buildSearchQuery` → `retrieveRagContext` → `createUIMessageStream` → `streamRagResponse`
+
+#### 스트리밍 이벤트 순서
+
+| 순서 | `type` | `transient` | `data` | UI 소비 |
+|------|--------|-------------|--------|---------|
+| 1 | `data-rag-status` | true | `{ "phase": "searching" }` | `ChatStreamingStatus` |
+| 2 | `data-rag-status` | true | `{ "phase": "generating" }` | 단계 전환 |
+| 3 | `data-rag-sources` | — | `{ "sources": RagSourceCard[] }` | `CitationSourceCards` |
+| 4+ | `text-start` / `text-delta` / `text-end` | — | assistant 본문 토큰 | `ChatMessageContent` |
+
+**`RagSourceCard`**
+
+```json
+{
+  "fileName": "연차휴가규정.md",
+  "displayName": "연차휴가규정",
+  "snippet": "입사 1년 이상 근로자에게…",
+  "chunkText": "전체 RAG 청크 텍스트 (원문 하이라이트용)"
+}
+```
+
+클라이언트: `useChat` + `onData` → `part.type === "data-rag-status"` 시 `ragPhase` 갱신.  
+타입 정의: `lib/chat/ui-message.ts` (`CorpBrainUIMessage`).
+
+**예시 (SSE 페이로드 발췌)**
+
+```
+data: {"type":"data-rag-status","data":{"phase":"searching"},"transient":true}
+data: {"type":"data-rag-sources","id":"rag-sources","data":{"sources":[...]}}
+data: {"type":"text-delta","delta":"연차는 "}
+```
 
 ---
 
@@ -305,3 +336,4 @@
 |------|------|-----------|
 | v1.0 | 2026-07-02 | 최초 작성 |
 | v1.1 | 2026-07-03 | 문서 트리·원문 API, health pgvector/redis 필드 |
+| v1.2 | 2026-07-03 | `/api/chat` UIMessage data parts (`data-rag-status`, `data-rag-sources`) |

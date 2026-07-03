@@ -142,7 +142,21 @@ check_search_quality || true
 if [[ "$RUN_FULL" == true ]]; then
   echo ""
   echo "── smoke:compose ──"
-  npm run smoke:compose || log_fail "smoke:compose 실패"
+  SMOKE_EXTRA=()
+  if [[ "$RUN_READY" == true && -f config/env/compose.host.env ]]; then
+    set -a
+    # shellcheck disable=SC1091
+    source config/env/compose.host.env
+    set +a
+    ready_url="${AUTH_URL:-http://localhost:3100}"
+    ready_health="$(curl -sf "$ready_url/api/health" 2>/dev/null || echo "")"
+    ready_status="$(echo "$ready_health" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status',''))" 2>/dev/null || echo "")"
+    if [[ "$ready_status" == "ok" ]]; then
+      SMOKE_EXTRA=(--skip-deploy)
+      echo "Compose health ok ($ready_url) — 재배포 생략 (--skip-deploy)"
+    fi
+  fi
+  npm run smoke:compose -- "${SMOKE_EXTRA[@]}" || log_fail "smoke:compose 실패"
 fi
 
 if [[ "$RUN_E2E" == true ]]; then

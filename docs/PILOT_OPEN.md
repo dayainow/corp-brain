@@ -36,6 +36,10 @@ npm run pilot:preflight -- --e2e
 
 ### 2.1 계정·권한 배포 (B1)
 
+```bash
+npm run pilot:bday          # 시드 계정 표 + health 확인
+```
+
 | 역할 | 용도 | 예시 |
 |------|------|------|
 | `admin` | Sync Vault · Admin 대시보드 | lee.minho@novapay.kr |
@@ -66,7 +70,12 @@ npm run pilot:preflight -- --e2e
 
 ### 2.3 모니터링 시작 (B3)
 
-터미널 또는 systemd/cron에서 백그라운드 실행:
+```bash
+# 안내 + health 확인 + watch 백그라운드 (로그: data/health-watch.log)
+npm run pilot:bday -- --watch
+```
+
+터미널 포그라운드 실행:
 
 ```bash
 export BASE_URL=https://corpbrain.internal
@@ -132,7 +141,9 @@ EVAL_HIT3_THRESHOLD=0.8 npm run eval:search   # Hit@3만
 
 | 명령 | 용도 |
 |------|------|
-| `npm run pilot:preflight` | D-1 사전 점검 |
+| `npm run pilot:ready` | D-1 전체 점검 (Compose + E2E + RAG) |
+| `npm run pilot:bday` | B-Day B1~B3 (계정·안내·health) |
+| `npm run pilot:bday -- --watch` | + health:watch 백그라운드 |
 | `npm run health:watch` | 15분 health 알림 |
 | `npm run report:feedback` | 피드백 마크다운 리포트 |
 | `npm run smoke:compose` | Compose 운영 스모크 |
