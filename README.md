@@ -126,7 +126,7 @@ flowchart TD
 3. **Re-ranking** — 파일명·제목·한국어 동의어 가산 (`reranker.ts`, `korean-query.ts`)
 4. **(옵션) Cross-encoder** — 질문·문서 쌍 재점수로 상위 후보 재정렬 (`cross-encoder.ts`)
 5. **생성** — Top-5를 System Prompt에 주입, `[출처: filename.md]` 인용·**한국어 답변** 강제
-6. **품질 측정** — `data/eval-queries.json` 15문항, `npm run eval:search` 또는 Admin `/api/admin/metrics`
+6. **품질 측정** — `data/eval-queries.json` 25문항, `npm run eval:search` 또는 Admin `/api/admin/metrics`
 
 ---
 

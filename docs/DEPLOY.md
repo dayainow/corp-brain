@@ -107,7 +107,7 @@ npm run index:vault
 EVAL_HIT3_THRESHOLD=0.8 npm run eval:search
 ```
 
-- eval 데이터: `data/eval-queries.json` (15문항)
+- eval 데이터: `data/eval-queries.json` (25문항)
 - 목표: **Hit@3 ≥ 80%**
 - CI: `.github/workflows/quality-harness.yml`
 

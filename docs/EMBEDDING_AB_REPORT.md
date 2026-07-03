@@ -1,14 +1,14 @@
 # Embedding A/B 리포트
 
-> 생성: 2026-07-03T04:28:47.290Z
+> 생성: 2026-07-03T04:33:09.339Z
 > 코퍼스: `npm run index:vault` 기준 · eval: `data/eval-queries.json`
 
 ## 결과
 
 | 모델 | Hit@1 | Hit@3 | MRR | 청크 | 임베딩(ms) |
 |------|-------|-------|-----|------|------------|
-| **multilingual-e5-small (기본)** | 93.3% | 100.0% | 0.956 | 96 | 2338 |
-| ko-sroberta-multitask (한국어) | 93.3% | 100.0% | 0.956 | 96 | 7035 |
+| **multilingual-e5-small (기본)** | 84.0% | 100.0% | 0.913 | 96 | 2156 |
+| ko-sroberta-multitask (한국어) | 84.0% | 100.0% | 0.913 | 96 | 5794 |
 
 **승자**: `Xenova/multilingual-e5-small` (Hit@3 100.0%)
 

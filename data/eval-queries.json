@@ -73,5 +73,55 @@
     "query": "타운홀 미팅 메모",
     "expectedFiles": ["타운홀미팅메모.md"],
     "role": "manager"
+  },
+  {
+    "query": "반차는 몇 시간 쓸 수 있어?",
+    "expectedFiles": ["연차휴가규정.md"],
+    "role": "general"
+  },
+  {
+    "query": "출장 다녀온 뒤 정산은 언제까지 해야 해?",
+    "expectedFiles": ["출장경비정책.md"],
+    "role": "general"
+  },
+  {
+    "query": "외주 디자인 용역 계약 금액이 얼마야?",
+    "expectedFiles": ["벤더계약서.md"],
+    "role": "admin"
+  },
+  {
+    "query": "플랫폼 주간 회의에서 챗봇 권한 뭐라고 했어?",
+    "expectedFiles": ["회의록.md"],
+    "role": "manager"
+  },
+  {
+    "query": "CorpBrain vault 동기화는 어떻게 해?",
+    "expectedFiles": ["corpbrain-운영가이드.md"],
+    "role": "general"
+  },
+  {
+    "query": "사내 RAG 챗봇 기획 제안 배경이 뭐야?",
+    "expectedFiles": ["분기실적보고.md"],
+    "role": "manager"
+  },
+  {
+    "query": "클라우드 인프라 청구서 금액 알려줘",
+    "expectedFiles": ["협력사청구서.md"],
+    "role": "manager"
+  },
+  {
+    "query": "그룹웨어로 휴가 결재는 며칠 전에 올려야 해?",
+    "expectedFiles": ["연차휴가규정.md", "휴가신청서양식.md"],
+    "role": "general"
+  },
+  {
+    "query": "글로벌AI 제휴 NDA 주요 조항",
+    "expectedFiles": ["파트너사nda.md"],
+    "role": "admin"
+  },
+  {
+    "query": "강남 사무실 월 임대료가 얼마야?",
+    "expectedFiles": ["사무실임대계약.md"],
+    "role": "admin"
   }
 ]

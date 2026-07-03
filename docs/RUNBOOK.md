@@ -131,7 +131,7 @@ npm run index:vault
 EVAL_HIT3_THRESHOLD=0.8 npm run eval:search
 ```
 
-- 목표: **Hit@3 ≥ 80%** (`data/eval-queries.json`, 15문항)
+- 목표: **Hit@3 ≥ 80%** (`data/eval-queries.json`, 25문항)
 - 실패 시: vault 문서·동의어·Cross-encoder 설정 검토 → [DEPLOY.md §6](./DEPLOY.md)
 
 ### 3.3 백업
