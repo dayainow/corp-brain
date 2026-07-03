@@ -85,6 +85,16 @@ npm run pilot:bday -- --all               # a10 + b1~b4 일괄
 npm run pilot:bday -- --watch             # + health:watch 백그라운드
 ```
 
+**A10 웹훅 설정·검증**
+
+```bash
+# Slack #corpbrain-alerts Incoming Webhook URL 확보 후
+npm run pilot:a10-setup -- --webhook-url 'https://hooks.slack.com/services/...'
+# 또는 config/pilot-secrets.env 에 저장 후
+npm run pilot:a10-setup
+npm run pilot:a10-setup -- --verify-only   # 재검증
+```
+
 **health 주기 알림** (15분 기본)
 
 ```bash
@@ -98,6 +108,8 @@ npm run health:watch
 | 명령 | 용도 |
 |------|------|
 | `pilot:preflight` | D-1 기본 점검 |
+| `pilot:a10-setup` | A10 웹훅 저장 + 알림 2건 전송 검증 |
+| `pilot:a10-smoke` | A10 웹훅·온콜 스모크 |
 | `pilot:ready` | 오픈 전 전체 자동 검증 |
 | `pilot:bday` | B-Day 계정·안내·health |
 | `report:feedback` | 👎 Top 질문 (일일) |

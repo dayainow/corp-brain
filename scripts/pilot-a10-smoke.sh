@@ -8,6 +8,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+if [[ -f config/pilot-secrets.env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source config/pilot-secrets.env
+  set +a
+fi
 if [[ -f .env.local ]]; then
   set -a
   # shellcheck disable=SC1091

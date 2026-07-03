@@ -21,7 +21,7 @@
 | A7b | `npm run smoke:compose` PASS (선택·권장) | ☐ | DevOps |
 | A8 | 시드 계정·RBAC 3종 — `npm run test:e2e` (pilot.spec, auth) | ☐ | QA |
 | A9 | 샘플 질문·출처 뱃지 — `e2e/citation-preview.spec.ts` 또는 `npm run test:e2e:rag` (Ollama 기동 시) | ☐ | QA |
-| A10 | `#corpbrain-alerts` 웹훅·온콜 — `npm run pilot:a10-smoke` | ☐ | 플랫폼 |
+| A10 | `#corpbrain-alerts` 웹훅 — `npm run pilot:a10-setup` | ☐ | 플랫폼 |
 
 ---
 

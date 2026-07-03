@@ -29,6 +29,7 @@
     "pilot:bday": "bash scripts/pilot-bday.sh",
     "pilot:env-bday": "bash scripts/pilot-env-bday.sh",
     "pilot:a10-smoke": "bash scripts/pilot-a10-smoke.sh",
+    "pilot:a10-setup": "bash scripts/pilot-a10-setup.sh",
     "pilot:slack-smoke": "bash scripts/pilot-slack-smoke.sh",
     "health:watch": "bash scripts/health-watch.sh",
     "report:feedback": "tsx scripts/report-feedback.ts",

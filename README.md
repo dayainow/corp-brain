@@ -347,7 +347,7 @@ SLACK_USER_MAP={"U01234":"lee.minho@novapay.kr"}
 | `npm run db:migrate` | vectors.json → PgVector 이전 |
 | `npm run pilot:ready` | B-Day 전 전체 자동 점검 |
 | `npm run pilot:env-bday` | B-Day env (SLACK·웹훅) + Compose 반영 |
-| `npm run pilot:a10-smoke` | A10 alerts 웹훅·온콜 스모크 |
+| `npm run pilot:a10-setup` | A10 웹훅 저장 + Slack 알림 검증 |
 | `npm run pilot:bday` | B-Day B1~B3 (계정·Slack·health) |
 | `npm run pilot:bday -- --step b4` | B4 Slack `/corpbrain` 스모크 |
 | `npm run pilot:bday -- --all` | A10 + B1~B4 일괄 |
