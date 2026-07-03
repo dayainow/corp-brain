@@ -4,7 +4,12 @@ import { checkRateLimit, denyRateLimit, rateLimitHeaders } from "@/lib/rate-limi
 import { validateChatMessages, toModelMessages } from "@/lib/chat/messages";
 import { buildSearchQuery } from "@/lib/search/query-context";
 import { retrieveRagContext, prepareUserMessages, streamRagResponse } from "@/lib/chat/rag";
+import {
+  buildRagSourceCards,
+  type CorpBrainUIMessage,
+} from "@/lib/chat/ui-message";
 import { logError } from "@/lib/logger";
+import { createUIMessageStream, createUIMessageStreamResponse } from "ai";
 
 export const maxDuration = 30;
 
@@ -36,32 +41,58 @@ export async function POST(req: Request) {
 
     const latestMessage = validation.text;
     const searchQuery = buildSearchQuery(body.messages);
-    const rag = await retrieveRagContext(searchQuery, latestMessage, userRole);
-
-    await writeAuditLog({
-      action: "chat.query",
-      userId: session!.user.id,
-      userEmail: session!.user.email,
-      userRole,
-      detail: {
-        query: latestMessage.slice(0, 200),
-        sourcesFound: rag.relevantDocs.length,
-        sources: rag.sources,
-      },
-      ip: getClientIp(req),
-    });
 
     const modelMessages = toModelMessages(body.messages);
     if (modelMessages.length === 0) {
       return jsonError("No message provided", 400, "EMPTY_MESSAGE");
     }
 
-    const result = streamRagResponse(
-      rag.systemPrompt,
-      prepareUserMessages(modelMessages)
-    );
+    const stream = createUIMessageStream<CorpBrainUIMessage>({
+      originalMessages: body.messages as CorpBrainUIMessage[],
+      execute: async ({ writer }) => {
+        writer.write({
+          type: "data-rag-status",
+          data: { phase: "searching" },
+          transient: true,
+        });
 
-    return result.toUIMessageStreamResponse({
+        const rag = await retrieveRagContext(searchQuery, latestMessage, userRole);
+
+        await writeAuditLog({
+          action: "chat.query",
+          userId: session!.user.id,
+          userEmail: session!.user.email,
+          userRole,
+          detail: {
+            query: latestMessage.slice(0, 200),
+            sourcesFound: rag.relevantDocs.length,
+            sources: rag.sources,
+          },
+          ip: getClientIp(req),
+        });
+
+        writer.write({
+          type: "data-rag-status",
+          data: { phase: "generating" },
+          transient: true,
+        });
+
+        writer.write({
+          type: "data-rag-sources",
+          id: "rag-sources",
+          data: { sources: buildRagSourceCards(rag.relevantDocs) },
+        });
+
+        const result = streamRagResponse(
+          rag.systemPrompt,
+          prepareUserMessages(modelMessages)
+        );
+        writer.merge(result.toUIMessageStream());
+      },
+    });
+
+    return createUIMessageStreamResponse({
+      stream,
       headers: rateLimitHeaders(rate.remaining, rate.resetAt),
     });
   } catch (err) {

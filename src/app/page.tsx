@@ -1,12 +1,14 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { DefaultChatTransport } from "ai";
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Send, Database, Loader2, ShieldAlert, Trash2, LogOut, User, CircleHelp, FolderTree } from "lucide-react";
 import { ChatMessageContent } from "@/components/chat-message";
 import { ChatFeedback } from "@/components/chat-feedback";
+import { ChatStreamingStatus } from "@/components/chat-streaming-status";
+import { CitationSourceCards } from "@/components/citation-source-cards";
 import { extractSourcesFromContent } from "@/lib/chat/sources";
 import { DocumentUpload } from "@/components/document-upload";
 import { DocumentTree } from "@/components/document-tree";
@@ -15,6 +17,11 @@ import { OnboardingBanner } from "@/components/onboarding-banner";
 import { QuickStartPrompts } from "@/components/quick-start-prompts";
 import type { UserRole } from "@/lib/rbac";
 import { extractMessageText } from "@/lib/chat/messages";
+import {
+  extractRagSourcesFromParts,
+  type CorpBrainUIMessage,
+  type RagStreamPhase,
+} from "@/lib/chat/ui-message";
 
 const ROLE_LABELS: Record<UserRole, string> = {
   general: "일반",
@@ -22,15 +29,31 @@ const ROLE_LABELS: Record<UserRole, string> = {
   admin: "관리자",
 };
 
-function getMessageText(message: UIMessage): string {
+function getMessageText(message: CorpBrainUIMessage): string {
   return extractMessageText(message) ?? "";
+}
+
+function resolveStreamPhase(
+  status: string,
+  ragPhase: RagStreamPhase | null
+): RagStreamPhase {
+  if (ragPhase) return ragPhase;
+  return status === "submitted" ? "searching" : "generating";
 }
 
 export default function Chat() {
   const { data: session, status: sessionStatus } = useSession();
 
-  const { messages, setMessages, status, sendMessage, error } = useChat({
+  const [ragPhase, setRagPhase] = useState<RagStreamPhase | null>(null);
+
+  const { messages, setMessages, status, sendMessage, error } = useChat<CorpBrainUIMessage>({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
+    onData: (part) => {
+      if (part.type === "data-rag-status") {
+        setRagPhase(part.data.phase);
+      }
+    },
+    onFinish: () => setRagPhase(null),
   });
 
   const [input, setInput] = useState("");
@@ -38,6 +61,7 @@ export default function Chat() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
+    setRagPhase("searching");
     sendMessage({ text: input });
     setInput("");
   };
@@ -204,6 +228,7 @@ export default function Chat() {
           mobileOpen={treeOpen}
           onMobileClose={() => setTreeOpen(false)}
           onSelectDocument={({ title }) => {
+            setRagPhase("searching");
             sendMessage({
               text: `「${title}」 문서의 주요 내용을 알려줘`,
             });
@@ -232,7 +257,10 @@ export default function Chat() {
             </p>
             <QuickStartPrompts
               userRole={userRole}
-              onSelect={(prompt) => sendMessage({ text: prompt })}
+              onSelect={(prompt) => {
+                setRagPhase("searching");
+                sendMessage({ text: prompt });
+              }}
             />
           </div>
         ) : (
@@ -245,8 +273,16 @@ export default function Chat() {
                     .find((msg) => msg.role === "user")
                 : undefined;
             const prevQuery = prevUser ? getMessageText(prevUser) : undefined;
-            const assistantSources =
-              m.role === "assistant" ? extractSourcesFromContent(getMessageText(m)) : [];
+            const assistantText = m.role === "assistant" ? getMessageText(m) : "";
+            const ragSources =
+              m.role === "assistant" ? extractRagSourcesFromParts(m.parts) : [];
+            const assistantSources = assistantText
+              ? extractSourcesFromContent(assistantText)
+              : ragSources.map((s) => s.fileName);
+            const isLastAssistant =
+              m.role === "assistant" && index === (messages?.length ?? 0) - 1;
+            const showStreamingStatus =
+              isLastAssistant && isLoading && !assistantText.trim();
 
             return (
               <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -261,12 +297,21 @@ export default function Chat() {
                     <div className="whitespace-pre-wrap">{getMessageText(m)}</div>
                   ) : (
                     <>
-                      <ChatMessageContent content={getMessageText(m)} />
-                      <ChatFeedback
-                        messageId={m.id}
-                        query={prevQuery}
-                        sources={assistantSources}
-                      />
+                      {ragSources.length > 0 && (
+                        <CitationSourceCards sources={ragSources} />
+                      )}
+                      {assistantText.trim() ? (
+                        <ChatMessageContent content={assistantText} />
+                      ) : showStreamingStatus ? (
+                        <ChatStreamingStatus phase={resolveStreamPhase(status, ragPhase)} />
+                      ) : null}
+                      {!isLoading && assistantText.trim() && (
+                        <ChatFeedback
+                          messageId={m.id}
+                          query={prevQuery}
+                          sources={assistantSources}
+                        />
+                      )}
                     </>
                   )}
                 </div>
@@ -274,11 +319,10 @@ export default function Chat() {
             );
           })
         )}
-        {isLoading && (
+        {isLoading && messages?.[messages.length - 1]?.role === "user" && (
           <div className="flex justify-start">
-            <div className="max-w-[80%] rounded-2xl px-5 py-3 shadow-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-sm border border-slate-100 dark:border-slate-700 flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-              <span>답변을 생성하고 있습니다...</span>
+            <div className="max-w-[85%] rounded-2xl px-5 py-3 shadow-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-sm border border-slate-100 dark:border-slate-700">
+              <ChatStreamingStatus phase={resolveStreamPhase(status, ragPhase)} />
             </div>
           </div>
         )}
