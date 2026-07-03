@@ -1,7 +1,7 @@
 # CorpBrain 납품 산출물 목록 (인덱스)
 
 > **프로젝트**: CorpBrain — NovaPay(노바페이) 사내 지식 베이스 RAG 챗봇  
-> **문서 버전**: v1.1  
+> **문서 버전**: v1.2  
 > **작성일**: 2026-07-03  
 > **대상 고객사**: 주식회사 노바페이
 
@@ -28,7 +28,8 @@
 | 문서 | 파일 | 설명 |
 |------|------|------|
 | 운영 Runbook | [../RUNBOOK.md](../RUNBOOK.md) | 일상 점검·장애 대응·백업·배포 |
-| 파일럿 체크리스트 | [../PILOT_CHECKLIST.md](../PILOT_CHECKLIST.md) | 오픈 전·당일·1주 Go/No-Go |
+| 파일럿 오픈 가이드 | [../PILOT_OPEN.md](../PILOT_OPEN.md) | B-Day B1~B3, D+7 피드백 |
+| 파일럿 체크리스트 | [../PILOT_CHECKLIST.md](../PILOT_CHECKLIST.md) | Go/No-Go · A~D 항목 |
 | 파일럿 품질 리포트 | [../PILOT_QUALITY_REPORT.md](../PILOT_QUALITY_REPORT.md) | D+1~D+7 회고·Hit@3 기록 |
 | 배포 가이드 | [../DEPLOY.md](../DEPLOY.md) | Docker Compose·환경 변수 |
 

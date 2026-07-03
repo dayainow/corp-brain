@@ -41,6 +41,16 @@ npm run smoke:compose
 npm run smoke:compose -- --skip-deploy
 ```
 
+**B-Day 전·당일**
+
+| 명령 | 용도 |
+|------|------|
+| `npm run pilot:ready` | 전체 점검 (Compose + E2E + RAG) |
+| `npm run pilot:bday` | 계정 표 · Slack 안내 · health |
+| `npm run pilot:bday -- --watch` | health:watch 백그라운드 |
+
+상세: [PILOT_OPEN.md](./PILOT_OPEN.md)
+
 > **Mac 참고**: 로컬 PostgreSQL이 5432를 쓰는 경우 Compose Postgres는 **호스트 5433**에 바인딩됩니다. Docker는 [Colima](https://github.com/abiosoft/colima) 또는 Docker Desktop 필요.
 
 ---

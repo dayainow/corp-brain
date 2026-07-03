@@ -81,27 +81,23 @@
 - [x] Slack Slash Command, 문서 만료 정책
 - [x] Docker standalone, 보안 헤더
 
-### Phase 4.5 — 파일럿 준비 🔄 (현재)
+### Phase 4.5 — 파일럿 준비 ✅
 
 - [x] `sample-docs` → `vault/` 납품 구조
 - [x] 채팅 UIMessage 안정화, 한국어 프롬프트
-- [x] `multilingual-e5-small` 임베딩
-- [x] PgVector ANN + SQL 키워드 후보 검색
-- [x] 증분 Sync (`data/index-manifest.json`)
-- [x] eval CI 게이트 (Hit@3 ≥ 80%)
-- [x] 문서 트리 검색 + 출처 원문 보기
-- [x] Compose 운영 스모크 (`npm run smoke:compose`)
-- [x] E2E 26건 (RBAC·트리·원문·Ollama RAG)
-- [ ] 파일럿 50명 배포 (운영 오픈)
-- [x] 채팅 👍/👎 피드백 → audit.log
-- [x] Slack Role 매핑 + Ollama 답변 생성
-- [x] 한국어 쿼리 정규화·동의어 리랭킹
-- [x] `ko-sroberta` 임베딩 A/B 테스트 (`npm run eval:embedding-ab`)
+- [x] `multilingual-e5-small` 임베딩 · Hit@3 **100%** (25문항)
+- [x] PgVector ANN + Redis Compose (`:3100`)
+- [x] 증분 Sync · eval CI 게이트 (≥ 80%)
+- [x] 문서 트리 보기/질문 · RAG 신뢰 UX · 후속 칩 · 모바일
+- [x] E2E **32건** · `pilot:ready` · `pilot:bday` · `report:pilot-weekly`
+- [x] 납품 문서 11종 + Runbook v0.3 동기화
+- [ ] 파일럿 50명 운영 오픈 (B-Day 수동: Slack·온콜 A10)
 
 ### Phase 5 — 확장 (향후)
 
 - [ ] Notion/Confluence/Drive 커넥터 (Glean 패턴)
-- [ ] Cross-encoder Re-ranking
+- [ ] Cross-encoder Re-ranking A/B 자동화
+- [x] Cross-encoder 옵션 경로 (`cross-encoder.ts`)
 - [x] Slack 사용자별 Role + LLM 답변
 - [x] 채팅 피드백(👍/👎) → 검색 품질 루프
 - [ ] Microsoft Teams 봇

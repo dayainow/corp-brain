@@ -8,6 +8,7 @@
 > **납품 산출물 (11종)**: [`docs/deliverables/README.md`](docs/deliverables/README.md)  
 > **운영 Runbook**: [`docs/RUNBOOK.md`](docs/RUNBOOK.md)  
 > **파일럿 체크리스트**: [`docs/PILOT_CHECKLIST.md`](docs/PILOT_CHECKLIST.md)  
+> **파일럿 오픈 가이드**: [`docs/PILOT_OPEN.md`](docs/PILOT_OPEN.md)  
 > **파일럿 품질 리포트**: [`docs/PILOT_QUALITY_REPORT.md`](docs/PILOT_QUALITY_REPORT.md)
 
 ---

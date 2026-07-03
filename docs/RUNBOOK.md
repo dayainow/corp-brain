@@ -1,7 +1,7 @@
 # CorpBrain 운영 Runbook (초안)
 
 > **대상**: NovaPay 플랫폼·RAG 운영 담당자  
-> **버전**: v0.2 · 2026-07-03  
+> **버전**: v0.3 · 2026-07-03  
 > **관련 문서**: [DEPLOY.md](./DEPLOY.md) · [PILOT_CHECKLIST.md](./PILOT_CHECKLIST.md) · [납품 산출물](./deliverables/README.md)
 
 ---
@@ -67,8 +67,16 @@ curl -s http://localhost:3100/api/health | jq .
 **D-1 사전 점검**
 
 ```bash
-npm run pilot:preflight              # AUTH_SECRET · health · Ollama
+npm run pilot:preflight              # AUTH_SECRET · health · Ollama · harness
 npm run pilot:preflight -- --full    # + smoke:compose
+npm run pilot:ready                  # 전체: Compose + A8 E2E + A9 RAG (권장)
+```
+
+**B-Day 오픈 (B1~B3)**
+
+```bash
+npm run pilot:bday                   # 시드 계정 · Slack 안내 블록 · health
+npm run pilot:bday -- --watch        # + health:watch 백그라운드 (data/health-watch.log)
 ```
 
 **health 주기 알림** (15분 기본)
@@ -78,7 +86,16 @@ npm run pilot:preflight -- --full    # + smoke:compose
 export BASE_URL=http://localhost:3100
 export HEALTH_ALERT_WEBHOOK_URL=https://hooks.slack.com/...  # 또는 AUDIT_WEBHOOK_URL
 npm run health:watch
+# 중지: kill $(cat data/health-watch.pid)
 ```
+
+| 명령 | 용도 |
+|------|------|
+| `pilot:preflight` | D-1 기본 점검 |
+| `pilot:ready` | 오픈 전 전체 자동 검증 |
+| `pilot:bday` | B-Day 계정·안내·health |
+| `report:feedback` | 👎 Top 질문 (일일) |
+| `report:pilot-weekly` | D+7 주간 리포트 → `data/reports/` |
 
 | 환경 변수 | 기본값 | 설명 |
 |-----------|--------|------|
