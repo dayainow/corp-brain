@@ -562,7 +562,7 @@ corp-brain/
 - [x] 파일럿 체크리스트·오픈 가이드 (`PILOT_CHECKLIST`, `PILOT_OPEN`, `pilot:preflight`)
 - [x] **답변 신뢰 UX** — RAG 단계·참고 문서 카드·청크 하이라이트
 - [x] **후속 질문 칩** · 문서 트리 **보기/질문** 분리 · 모바일 safe-area
-- [ ] Cross-encoder ON/OFF A/B 평가 자동화
+- [x] Cross-encoder ON/OFF A/B 평가 자동화 (`npm run eval:cross-encoder-ab`)
 - [ ] Microsoft Teams 봇
 - [x] `ko-sroberta` 임베딩 A/B (`npm run eval:embedding-ab`)
 - [ ] K8s 배포, 2FA TOTP, 멀티 테넌트

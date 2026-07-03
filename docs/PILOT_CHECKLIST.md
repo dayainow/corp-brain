@@ -32,7 +32,7 @@
 | B1 | 파일럿 대상자 계정·역할 배포 — `npm run pilot:bday` | ☐ | IT |
 | B2 | `/guide` 인앱 가이드·예시 질문 — `pilot:bday` Slack 블록 복사 | ☐ | PM |
 | B3 | health 모니터링 — `npm run pilot:bday -- --watch` | ☐ | L1 |
-| B4 | Slack `/corpbrain` (사용 시) 1건 스모크 | ☐ | 플랫폼 |
+| B4 | Slack `/corpbrain` — `npm run pilot:slack-smoke` | ☐ | 플랫폼 |
 | B5 | 장애 시 Runbook §4·§7 에스컬레이션 경로 공지 | ☐ | 서비스 오너 |
 
 **시드 계정 (PoC, 파일럿 후 변경)**

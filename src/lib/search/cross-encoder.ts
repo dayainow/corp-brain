@@ -10,6 +10,20 @@ type Classifier = (
 ) => Promise<ClassifierOutput>;
 
 let crossEncoderPromise: Promise<Classifier | null> | null = null;
+let loadedModelId: string | null = null;
+
+/** A/B eval 등 모델 전환 시 캐시 초기화 */
+export function resetCrossEncoderCache(): void {
+  crossEncoderPromise = null;
+  loadedModelId = null;
+}
+
+function activeCrossEncoderModel(): string {
+  if (process.env.CROSS_ENCODER_MODEL !== undefined) {
+    return process.env.CROSS_ENCODER_MODEL;
+  }
+  return config.search.crossEncoderModel;
+}
 
 function isPositiveLabel(label: string | undefined): boolean {
   if (!label) return false;
@@ -36,13 +50,18 @@ export function extractClassifierScore(output: ClassifierOutput): number {
 }
 
 async function getCrossEncoder(): Promise<Classifier | null> {
-  if (!config.search.crossEncoderModel) return null;
+  const modelId = activeCrossEncoderModel();
+  if (!modelId) return null;
+  if (loadedModelId !== modelId) {
+    resetCrossEncoderCache();
+    loadedModelId = modelId;
+  }
   if (!crossEncoderPromise) {
     crossEncoderPromise = (async () => {
       try {
         const instance = (await pipeline(
           "text-classification",
-          config.search.crossEncoderModel
+          modelId
         )) as unknown as Classifier;
         return instance;
       } catch (err) {
@@ -58,7 +77,7 @@ export async function crossEncodeRerank(
   query: string,
   candidates: RankedDocument[]
 ): Promise<RankedDocument[]> {
-  if (!config.search.crossEncoderModel || candidates.length === 0) return candidates;
+  if (!activeCrossEncoderModel() || candidates.length === 0) return candidates;
 
   const model = await getCrossEncoder();
   if (!model) return candidates;

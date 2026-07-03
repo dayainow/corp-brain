@@ -170,6 +170,10 @@ fi
 
 if [[ "$RUN_READY" == true ]]; then
   echo ""
+  echo "── Slack B4 스모크 ──"
+  npm run pilot:slack-smoke || log_warn "Slack 스모크 실패/스킵 (SLACK_SIGNING_SECRET)"
+
+  echo ""
   echo "── RAG E2E (A9) ──"
   lsof -ti :3001 2>/dev/null | xargs kill -9 2>/dev/null || true
   sleep 1

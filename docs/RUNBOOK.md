@@ -113,8 +113,8 @@ npm run health:watch
 **임베딩 A/B (개발)**
 
 ```bash
-npm run index:vault                    # 코퍼스 선행
 npm run eval:embedding-ab -- --write-report
+npm run eval:cross-encoder-ab -- --write-report
 ```
 
 - 리포트: [EMBEDDING_AB_REPORT.md](./EMBEDDING_AB_REPORT.md)

@@ -96,7 +96,7 @@
 ### Phase 5 — 확장 (향후)
 
 - [ ] Notion/Confluence/Drive 커넥터 (Glean 패턴)
-- [ ] Cross-encoder Re-ranking A/B 자동화
+- [x] Cross-encoder Re-ranking A/B 자동화 (`eval:cross-encoder-ab`)
 - [x] Cross-encoder 옵션 경로 (`cross-encoder.ts`)
 - [x] Slack 사용자별 Role + LLM 답변
 - [x] 채팅 피드백(👍/👎) → 검색 품질 루프
