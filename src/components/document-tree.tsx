@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -8,9 +8,15 @@ import {
   Folder,
   FolderTree,
   Loader2,
+  Search,
   X,
 } from "lucide-react";
 import type { UserRole } from "@/lib/rbac";
+import {
+  collectFolderIds,
+  countVaultFiles,
+  filterVaultTree,
+} from "@/lib/vault/tree-filter";
 import type { VaultTreeNode } from "@/lib/vault/types";
 
 const ROLE_BADGE: Record<UserRole, string> = {
@@ -122,14 +128,6 @@ function TreeNode({
   );
 }
 
-function collectFolderIds(node: VaultTreeNode, ids: string[] = []): string[] {
-  if (node.type === "folder" && node.id !== "/") {
-    ids.push(node.id);
-  }
-  node.children?.forEach((child) => collectFolderIds(child, ids));
-  return ids;
-}
-
 function TreePanel({
   tree,
   stats,
@@ -147,9 +145,28 @@ function TreePanel({
   onClose?: () => void;
   showClose?: boolean;
 }) {
+  const [searchQuery, setSearchQuery] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(() =>
     tree ? new Set(collectFolderIds(tree)) : new Set()
   );
+
+  const filteredTree = useMemo(() => {
+    if (!tree) return null;
+    if (!searchQuery.trim()) return tree;
+    return filterVaultTree(tree, searchQuery);
+  }, [tree, searchQuery]);
+
+  const matchCount = useMemo(() => {
+    if (!searchQuery.trim() || !filteredTree) return 0;
+    return countVaultFiles(filteredTree);
+  }, [searchQuery, filteredTree]);
+
+  const effectiveExpanded = useMemo(() => {
+    if (searchQuery.trim() && filteredTree) {
+      return new Set(collectFolderIds(filteredTree));
+    }
+    return expanded;
+  }, [searchQuery, filteredTree, expanded]);
 
   const onToggle = useCallback((id: string) => {
     setExpanded((prev) => {
@@ -188,6 +205,35 @@ function TreePanel({
         )}
       </div>
 
+      <div className="shrink-0 px-3 pb-2 border-b border-slate-200 dark:border-slate-800">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="문서 검색..."
+            className="w-full pl-8 pr-8 py-1.5 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            aria-label="문서 검색"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              aria-label="검색어 지우기"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+        {searchQuery.trim() && !loading && (
+          <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+            {matchCount > 0 ? `${matchCount}건 일치` : "일치하는 문서 없음"}
+          </p>
+        )}
+      </div>
+
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain p-2 scrollbar-themed">
         {loading && (
           <div className="flex items-center justify-center gap-2 py-8 text-sm text-slate-500">
@@ -201,12 +247,15 @@ function TreePanel({
         {!loading && !error && tree && (tree.children?.length ?? 0) === 0 && (
           <p className="px-2 py-4 text-sm text-slate-500">열람 가능한 문서가 없습니다.</p>
         )}
-        {!loading && !error && tree?.children?.map((child) => (
+        {!loading && !error && searchQuery.trim() && filteredTree === null && (
+          <p className="px-2 py-4 text-sm text-slate-500">검색 결과가 없습니다.</p>
+        )}
+        {!loading && !error && filteredTree?.children?.map((child) => (
           <TreeNode
             key={child.id}
             node={child}
             depth={0}
-            expanded={expanded}
+            expanded={effectiveExpanded}
             onToggle={onToggle}
             onSelectDocument={onSelectDocument}
           />
