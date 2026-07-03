@@ -334,7 +334,7 @@ SLACK_USER_MAP={"U01234":"lee.minho@novapay.kr"}
 | `npm run test:e2e` | Playwright E2E (32건, RAG 4건은 Ollama·인덱스 없으면 skip) |
 | `npm run test:e2e:rag` | Ollama RAG E2E만 (`ollama run llama3` + `index:vault` 선행) |
 | `npm run test:e2e:ui` | Playwright UI 모드 |
-| `npm run pilot:preflight` | 파일럿 D-1 사전 점검 (`--full` Compose, `--e2e` A8) |
+| `npm run pilot:preflight` | 파일럿 D-1 사전 점검 (`--full` Compose, `--e2e` A8, `--ready` 전체) |
 | `npm run eval:search` | 검색 품질 CLI 평가 (Hit@3 게이트, 기본 80%) |
 | `npm run index:vault` | vault 전체 인덱싱 |
 | `npm run index:vault -- --incremental` | vault 증분 인덱싱 |

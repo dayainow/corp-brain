@@ -4,6 +4,7 @@
 #   ./scripts/pilot-preflight.sh              # health + 환경 + 안내
 #   ./scripts/pilot-preflight.sh --full       # + smoke:compose
 #   ./scripts/pilot-preflight.sh --e2e        # + pilot E2E (서버 기동 필요)
+#   ./scripts/pilot-preflight.sh --ready      # --full + --e2e + test:e2e:rag
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -11,6 +12,7 @@ cd "$ROOT"
 
 RUN_FULL=false
 RUN_E2E=false
+RUN_READY=false
 PASS=0
 FAIL=0
 WARN=0
@@ -19,6 +21,7 @@ for arg in "$@"; do
   case "$arg" in
     --full) RUN_FULL=true ;;
     --e2e) RUN_E2E=true ;;
+    --ready) RUN_FULL=true; RUN_E2E=true; RUN_READY=true ;;
     -h|--help)
       sed -n '2,6p' "$0"
       exit 0
@@ -149,6 +152,18 @@ if [[ "$RUN_E2E" == true ]]; then
   lsof -ti :3001 2>/dev/null | xargs kill -9 2>/dev/null || true
   sleep 1
   npm run test:e2e -- e2e/pilot.spec.ts e2e/auth.spec.ts || log_fail "pilot E2E 실패"
+fi
+
+if [[ "$RUN_READY" == true ]]; then
+  echo ""
+  echo "── RAG E2E (A9) ──"
+  lsof -ti :3001 2>/dev/null | xargs kill -9 2>/dev/null || true
+  sleep 1
+  if npm run test:e2e:rag; then
+    log_pass "RAG E2E (Ollama)"
+  else
+    log_warn "RAG E2E 실패 또는 skip — Ollama·index:vault 확인"
+  fi
 fi
 
 print_next_steps

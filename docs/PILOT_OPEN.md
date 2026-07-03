@@ -15,7 +15,10 @@ npm run pilot:preflight
 # Compose 운영 스모크 포함
 npm run pilot:preflight -- --full
 
-# E2E 포함 (로컬/스테이징 서버 기동 후)
+# B-Day 전 전체 자동 점검 (Compose + A8 E2E + A9 RAG)
+npm run pilot:ready
+
+# E2E만 (로컬/스테이징 서버 기동 후)
 npm run pilot:preflight -- --e2e
 ```
 
@@ -24,6 +27,7 @@ npm run pilot:preflight -- --e2e
 | `pilot:preflight` | A1, A6, A2(경고) |
 | `pilot:preflight --full` | + A7b |
 | `pilot:preflight --e2e` | + A8 |
+| `pilot:ready` | --full + A8 + A9 (RAG, Ollama 필요) |
 | `EVAL_HIT3_THRESHOLD=0.8 npm run eval:search` | A7 |
 
 ---
@@ -51,6 +55,8 @@ npm run pilot:preflight -- --e2e
 🔗 접속: https://<호스트>/
 📖 사용법: 로그인 후 상단 "가이드" 또는 /guide
 💡 예시 질문: "연차 신청 방법", "경비 정산 규정"
+📂 왼쪽 문서 트리: 보기(원문) / 질문(채팅) 버튼으로 탐색
+💬 답변 아래 "이어서 물어보기" 칩으로 후속 질문 가능
 
 답변 아래 👍/👎 로 피드백 부탁드립니다.
 문제·개선 제안: #corpbrain-alerts 멘션 또는 PM에게 DM

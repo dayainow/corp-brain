@@ -24,6 +24,7 @@
     "deploy:compose": "bash scripts/deploy-compose.sh",
     "smoke:compose": "bash scripts/pilot-compose-smoke.sh",
     "pilot:preflight": "bash scripts/pilot-preflight.sh",
+    "pilot:ready": "bash scripts/pilot-preflight.sh --ready",
     "health:watch": "bash scripts/health-watch.sh",
     "report:feedback": "tsx scripts/report-feedback.ts",
     "report:pilot-weekly": "tsx scripts/report-pilot-weekly.ts",
