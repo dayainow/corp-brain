@@ -21,7 +21,7 @@
 | A7b | `npm run smoke:compose` PASS (선택·권장) | ☐ | DevOps |
 | A8 | 시드 계정·RBAC 3종 — `npm run test:e2e` (pilot.spec, auth) | ☐ | QA |
 | A9 | 샘플 질문·출처 뱃지 — `e2e/citation-preview.spec.ts` 또는 `npm run test:e2e:rag` (Ollama 기동 시) | ☐ | QA |
-| A10 | `#corpbrain-alerts` 웹훅·온콜 연락망 공유 ([RUNBOOK §7](./RUNBOOK.md)) | ☐ | 플랫폼 |
+| A10 | `#corpbrain-alerts` 웹훅·온콜 — `npm run pilot:a10-smoke` | ☐ | 플랫폼 |
 
 ---
 
@@ -29,10 +29,10 @@
 
 | # | 항목 | 확인 | 담당 |
 |---|------|:----:|------|
-| B1 | 파일럿 대상자 계정·역할 배포 — `npm run pilot:bday` | ☐ | IT |
-| B2 | `/guide` 인앱 가이드·예시 질문 — `pilot:bday` Slack 블록 복사 | ☐ | PM |
-| B3 | health 모니터링 — `npm run pilot:bday -- --watch` | ☐ | L1 |
-| B4 | Slack `/corpbrain` — `npm run pilot:slack-smoke` | ☐ | 플랫폼 |
+| B1 | 파일럿 대상자 계정·역할 배포 — `npm run pilot:bday -- --step b1` | ☐ | IT |
+| B2 | `/guide` 인앱 가이드·예시 질문 — `pilot:bday -- --step b2` Slack 복사 | ☐ | PM |
+| B3 | health 모니터링 — `npm run pilot:bday -- --step b3` · `--watch` | ☐ | L1 |
+| B4 | Slack `/corpbrain` — `npm run pilot:env-bday` 후 `pilot:slack-smoke` | ☐ | 플랫폼 |
 | B5 | 장애 시 Runbook §4·§7 에스컬레이션 경로 공지 | ☐ | 서비스 오너 |
 
 **시드 계정 (PoC, 파일럿 후 변경)**

@@ -13,7 +13,7 @@ import path from "path";
 import { runEvalSearch } from "../src/lib/search/run-eval";
 
 const DEFAULT_CE_MODEL =
-  process.env.CROSS_ENCODER_AB_MODEL ?? "cross-encoder/ms-marco-MiniLM-L-6-v2";
+  process.env.CROSS_ENCODER_AB_MODEL ?? "Xenova/ms-marco-MiniLM-L-6-v2";
 
 interface Variant {
   key: string;

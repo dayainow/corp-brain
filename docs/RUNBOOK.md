@@ -72,11 +72,17 @@ npm run pilot:preflight -- --full    # + smoke:compose
 npm run pilot:ready                  # 전체: Compose + A8 E2E + A9 RAG (권장)
 ```
 
-**B-Day 오픈 (B1~B3)**
+**B-Day 오픈 (단계별)**
 
 ```bash
-npm run pilot:bday                   # 시드 계정 · Slack 안내 블록 · health
-npm run pilot:bday -- --watch        # + health:watch 백그라운드 (data/health-watch.log)
+npm run pilot:env-bday                    # SLACK_SIGNING_SECRET·웹훅 안내
+npm run pilot:bday -- --step a10          # A10 alerts 웹훅·온콜 스모크
+npm run pilot:bday -- --step b1           # 계정표
+npm run pilot:bday -- --step b2           # Slack #corpbrain-pilot 공지 복사
+npm run pilot:bday -- --step b3           # health 확인
+npm run pilot:bday -- --step b4           # Slack /corpbrain 스모크
+npm run pilot:bday -- --all               # a10 + b1~b4 일괄
+npm run pilot:bday -- --watch             # + health:watch 백그라운드
 ```
 
 **health 주기 알림** (15분 기본)

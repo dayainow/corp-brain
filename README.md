@@ -346,7 +346,11 @@ SLACK_USER_MAP={"U01234":"lee.minho@novapay.kr"}
 | `npm run db:init` | PgVector 스키마 생성 |
 | `npm run db:migrate` | vectors.json → PgVector 이전 |
 | `npm run pilot:ready` | B-Day 전 전체 자동 점검 |
-| `npm run pilot:bday` | B-Day 오픈 (계정·Slack·health) |
+| `npm run pilot:env-bday` | B-Day env (SLACK·웹훅) + Compose 반영 |
+| `npm run pilot:a10-smoke` | A10 alerts 웹훅·온콜 스모크 |
+| `npm run pilot:bday` | B-Day B1~B3 (계정·Slack·health) |
+| `npm run pilot:bday -- --step b4` | B4 Slack `/corpbrain` 스모크 |
+| `npm run pilot:bday -- --all` | A10 + B1~B4 일괄 |
 | `npm run report:feedback` | 피드백 집계 (PILOT_QUALITY §3) |
 | `npm run report:pilot-weekly` | D+7 주간 리포트 → `data/reports/pilot-weekly-*.md` |
 

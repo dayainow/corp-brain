@@ -44,6 +44,10 @@ services:
       REDIS_URL: redis://redis:6379
       OLLAMA_BASE_URL: http://host.docker.internal:11434/v1
       OLLAMA_MODEL: llama3
+      SLACK_SIGNING_SECRET: ${SLACK_SIGNING_SECRET:-}
+      SLACK_USER_MAP: ${SLACK_USER_MAP:-}
+      HEALTH_ALERT_WEBHOOK_URL: ${HEALTH_ALERT_WEBHOOK_URL:-}
+      AUDIT_WEBHOOK_URL: ${AUDIT_WEBHOOK_URL:-}
     volumes:
       - ./data:/app/data
       - ./vault:/app/vault

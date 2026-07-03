@@ -142,8 +142,11 @@ EVAL_HIT3_THRESHOLD=0.8 npm run eval:search   # Hit@3만
 | 명령 | 용도 |
 |------|------|
 | `npm run pilot:ready` | D-1 전체 점검 (Compose + E2E + RAG) |
+| `npm run pilot:env-bday` | B-Day env (SLACK_SIGNING_SECRET·웹훅) |
+| `npm run pilot:a10-smoke` | A10 alerts 웹훅·온콜 스모크 |
 | `npm run pilot:bday` | B-Day B1~B3 (계정·안내·health) |
-| `npm run pilot:bday -- --watch` | + health:watch 백그라운드 |
+| `npm run pilot:bday -- --step b4` | B4 Slack 스모크 |
+| `npm run pilot:bday -- --all` | A10 + B1~B4 일괄 |
 | `npm run health:watch` | 15분 health 알림 |
 | `npm run report:feedback` | 피드백 마크다운 리포트 |
 | `npm run smoke:compose` | Compose 운영 스모크 |

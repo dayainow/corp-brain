@@ -39,11 +39,23 @@ slack_post() {
   local sig
   sig="$(printf '%s' "$sig_base" | openssl dgst -sha256 -hmac "$SLACK_SIGNING_SECRET" | awk '{print $2}')"
 
-  curl -sf -X POST "${BASE_URL}/api/slack/command" \
+  local resp http_code
+  resp="$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/api/slack/command" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "X-Slack-Signature: v0=${sig}" \
     -H "X-Slack-Request-Timestamp: ${timestamp}" \
-    -d "$body"
+    -d "$body" 2>/dev/null || echo -e "\n000")"
+  http_code="$(echo "$resp" | tail -n1)"
+  resp="$(echo "$resp" | sed '$d')"
+  if [[ "$http_code" == "000" ]]; then
+    echo '{"error":"request_failed","detail":"connection"}'
+    return 1
+  fi
+  if [[ "$http_code" -ge 400 ]]; then
+    echo "{\"error\":\"http_${http_code}\",\"body\":$(python3 -c "import json,sys; print(json.dumps(sys.stdin.read()))" <<<"$resp")}"
+    return 1
+  fi
+  echo "$resp"
 }
 
 echo "CorpBrain Slack 스모크 (B4)"
