@@ -99,6 +99,13 @@ npm run eval:embedding-ab -- --write-report
 - 리포트: [EMBEDDING_AB_REPORT.md](./EMBEDDING_AB_REPORT.md)
 - ko-sroberta 전용 인덱스: `config/env/local.ko-sroberta.env` 참고 (768d, JSON only)
 
+```bash
+npm run test:e2e:rag   # Ollama + index:vault 선행, 실제 /api/chat 스트리밍 검증
+```
+
+- Ollama·인덱스 없으면 **자동 skip** (CI 통과 유지)
+- 로컬: `ollama run llama3` → `npm run index:vault` → `npm run test:e2e:rag`
+
 상세 오픈 절차: [PILOT_OPEN.md](./PILOT_OPEN.md)
 
 ---

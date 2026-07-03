@@ -92,7 +92,7 @@ print_next_steps() {
   echo "  A7  EVAL_HIT3_THRESHOLD=0.8 npm run eval:search"
   echo "  A7b npm run smoke:compose          # Compose 운영 스모크"
   echo "  A8  npm run test:e2e -- e2e/pilot.spec.ts e2e/auth.spec.ts"
-  echo "  A9  npm run test:e2e -- e2e/citation-preview.spec.ts"
+  echo "  A9  npm run test:e2e:rag              # Ollama RAG (ollama + index:vault)"
   echo "  B-Day 가이드: docs/PILOT_OPEN.md"
   echo "  모니터링: npm run health:watch"
   echo "  피드백 리포트: npm run report:feedback"

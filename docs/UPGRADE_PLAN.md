@@ -91,7 +91,7 @@
 - [x] eval CI 게이트 (Hit@3 ≥ 80%)
 - [x] 문서 트리 검색 + 출처 원문 보기
 - [x] Compose 운영 스모크 (`npm run smoke:compose`)
-- [x] E2E 22건 (RBAC·트리·원문)
+- [x] E2E 26건 (RBAC·트리·원문·Ollama RAG)
 - [ ] 파일럿 50명 배포 (운영 오픈)
 - [x] 채팅 👍/👎 피드백 → audit.log
 - [x] Slack Role 매핑 + Ollama 답변 생성

@@ -329,7 +329,8 @@ SLACK_USER_MAP={"U01234":"lee.minho@novapay.kr"}
 | `npm run build` / `start` | 프로덕션 빌드·실행 |
 | `npm test` | Vitest 단위 테스트 (46개) |
 | `npm run test:watch` | Vitest watch 모드 |
-| `npm run test:e2e` | Playwright E2E |
+| `npm run test:e2e` | Playwright E2E (26건, RAG 4건은 Ollama·인덱스 없으면 skip) |
+| `npm run test:e2e:rag` | Ollama RAG E2E만 (`ollama run llama3` + `index:vault` 선행) |
 | `npm run test:e2e:ui` | Playwright UI 모드 |
 | `npm run eval:search` | 검색 품질 CLI 평가 (Hit@3 게이트, 기본 80%) |
 | `npm run index:vault` | vault 전체 인덱싱 |

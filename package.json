@@ -27,6 +27,7 @@
     "report:pilot-weekly": "tsx scripts/report-pilot-weekly.ts",
     "quality:loop": "npm run lint && npm test && npm run harness:quality && npm run build && npm run test:e2e",
     "test:e2e": "playwright test",
+    "test:e2e:rag": "playwright test e2e/rag-ollama.spec.ts",
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
