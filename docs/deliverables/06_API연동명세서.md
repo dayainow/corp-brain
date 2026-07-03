@@ -4,8 +4,8 @@
 |------|------|
 | 프로젝트명 | CorpBrain |
 | Base URL | `http://localhost:3000` (개발) |
-| 문서 버전 | v1.0 |
-| 작성일 | 2026-07-02 |
+| 문서 버전 | v1.1 |
+| 작성일 | 2026-07-03 |
 
 ---
 
@@ -47,6 +47,8 @@
 | POST | `/api/index` | admin | Vault 인덱싱 |
 | POST | `/api/upload` | manager+ | 문서 업로드 |
 | GET | `/api/upload` | manager+ | 업로드 목록 |
+| GET | `/api/documents/tree` | 로그인 | 권한별 문서 트리 |
+| GET | `/api/documents/content` | 로그인 | 출처 원문 조회 |
 | GET | `/api/health` | 공개 | 헬스체크 |
 | GET | `/api/admin/audit` | admin | 감사 로그 |
 | GET | `/api/admin/documents` | admin | 문서 통계 |
@@ -139,6 +141,69 @@
 
 ---
 
+### GET `/api/documents/tree`
+
+**권한**: 로그인 (세션 `role` 기반 Pre-filtering)
+
+**Response**
+```json
+{
+  "tree": {
+    "id": "/",
+    "name": "vault",
+    "type": "folder",
+    "children": [
+      {
+        "id": "/전사공통/인사/연차휴가규정.md",
+        "name": "연차휴가규정.md",
+        "type": "file",
+        "title": "연차휴가규정",
+        "fileName": "연차휴가규정.md",
+        "fileType": "md",
+        "role": "general"
+      }
+    ]
+  },
+  "stats": {
+    "visibleCount": 22,
+    "byRole": { "general": 12, "manager": 7, "admin": 3 }
+  }
+}
+```
+
+---
+
+### GET `/api/documents/content?fileName={fileName}`
+
+**권한**: 로그인 + RBAC (해당 문서 `role` 이하만)
+
+**Query**
+
+| 파라미터 | 필수 | 설명 |
+|----------|------|------|
+| fileName | O | vault 내 파일명 (경로 구분자·`..` 금지) |
+
+**Response** `200`
+```json
+{
+  "fileName": "연차휴가규정.md",
+  "title": "연차휴가규정",
+  "fileType": "md",
+  "relativePath": "전사공통/인사/연차휴가규정.md",
+  "content": "# 연차휴가규정\n..."
+}
+```
+
+**에러**
+
+| 코드 | 조건 |
+|------|------|
+| 400 | `fileName` 누락 |
+| 404 | 문서 없음 또는 열람 권한 없음 |
+| 500 | 파싱·IO 오류 |
+
+---
+
 ### GET `/api/health`
 
 **Response** `200` (operational) / `503` (unhealthy)
@@ -146,10 +211,12 @@
 ```json
 {
   "status": "ok",
-  "chunkCount": 90,
-  "vectorStore": "json",
+  "chunkCount": 96,
+  "vectorStore": "pgvector",
   "checks": {
     "vectorStore": "ok",
+    "postgres": "ok",
+    "redis": "ok",
     "vault": "ok",
     "ollama": "ok"
   }
@@ -237,3 +304,4 @@
 | 버전 | 일자 | 변경 내용 |
 |------|------|-----------|
 | v1.0 | 2026-07-02 | 최초 작성 |
+| v1.1 | 2026-07-03 | 문서 트리·원문 API, health pgvector/redis 필드 |

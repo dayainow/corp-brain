@@ -9,7 +9,7 @@
 | 서비스 | 역할 | 포트 |
 |--------|------|------|
 | **app** | Next.js standalone | 3000 |
-| **postgres** | PgVector (벡터 영속화) | 5432 |
+| **postgres** | PgVector (벡터 영속화) | **5433** (호스트) → 5432 (컨테이너) |
 | **redis** | Rate limit (다중 인스턴스 공유) | 6379 |
 | **Ollama** (호스트) | LLM `llama3` | 11434 |
 
@@ -33,6 +33,16 @@ chmod +x scripts/deploy-compose.sh
 3. 앱 빌드·기동
 4. `/api/health` 확인
 
+**파일럿 A3~A7 일괄 스모크** (배포 + 인덱싱 + health + Hit@3):
+
+```bash
+npm run smoke:compose
+# 이미 Compose가 떠 있으면
+npm run smoke:compose -- --skip-deploy
+```
+
+> **Mac 참고**: 로컬 PostgreSQL이 5432를 쓰는 경우 Compose Postgres는 **호스트 5433**에 바인딩됩니다. Docker는 [Colima](https://github.com/abiosoft/colima) 또는 Docker Desktop 필요.
+
 ---
 
 ## 3. 인덱싱 (필수)
@@ -50,7 +60,7 @@ npm run index:vault
 ```bash
 # 호스트에서 마이그레이션 (앱 컨테이너 기동 전/후)
 VECTOR_STORE=pgvector \
-DATABASE_URL=postgresql://corpbrain:corpbrain@localhost:5432/corpbrain \
+DATABASE_URL=postgresql://corpbrain:corpbrain@localhost:5433/corpbrain \
 npm run index:vault
 
 # 또는 기존 JSON → PG 이전

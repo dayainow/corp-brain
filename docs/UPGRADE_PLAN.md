@@ -88,8 +88,11 @@
 - [x] `multilingual-e5-small` 임베딩
 - [x] PgVector ANN + SQL 키워드 후보 검색
 - [x] 증분 Sync (`data/index-manifest.json`)
-- [x] eval CI 게이트 (Hit@3 ≥ 50%)
-- [ ] 파일럿 50명 배포, Hit@3 ≥ 80% 달성
+- [x] eval CI 게이트 (Hit@3 ≥ 80%)
+- [x] 문서 트리 검색 + 출처 원문 보기
+- [x] Compose 운영 스모크 (`npm run smoke:compose`)
+- [x] E2E 22건 (RBAC·트리·원문)
+- [ ] 파일럿 50명 배포 (운영 오픈)
 - [x] 채팅 👍/👎 피드백 → audit.log
 - [x] Slack Role 매핑 + Ollama 답변 생성
 - [x] 한국어 쿼리 정규화·동의어 리랭킹

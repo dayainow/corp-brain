@@ -1,12 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { loginAs } from "./helpers/auth";
 
 test.describe("채팅 UI", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/login");
-    await page.getByPlaceholder("name@novapay.kr").fill("lee.minho@novapay.kr");
-    await page.locator('input[type="password"]').fill("novapay2026");
-    await page.getByRole("button", { name: "로그인", exact: true }).click();
-    await page.waitForURL("/");
+    await loginAs(page, "admin");
   });
 
   test("채팅 화면 기본 UI", async ({ page }) => {

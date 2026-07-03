@@ -28,13 +28,13 @@ until docker compose exec -T postgres pg_isready -U corpbrain >/dev/null 2>&1; d
 done
 
 echo "==> PgVector 스키마 초기화"
-DATABASE_URL=postgresql://corpbrain:corpbrain@localhost:5432/corpbrain npm run db:init
+DATABASE_URL=postgresql://corpbrain:corpbrain@localhost:5433/corpbrain npm run db:init
 
 echo "==> 앱 이미지 빌드 및 기동"
 docker compose up -d --build app
 
 echo "==> Health 확인"
-for i in {1..20}; do
+for i in {1..40}; do
   if curl -fsS http://localhost:3000/api/health >/dev/null 2>&1; then
     echo "OK: http://localhost:3000/api/health"
     curl -s http://localhost:3000/api/health | head -c 400
