@@ -1,9 +1,12 @@
 #!/usr/bin/env tsx
 /**
- * 파일럿 주간 리포트 — 피드백 + eval 후보 + Hit@3
- * Usage: npm run report:pilot-weekly
+ * 파일럿 주간 리포트 — 질문·피드백·Hit@3·eval 후보
+ * Usage:
+ *   npm run report:pilot-weekly
+ *   npm run report:pilot-weekly -- --no-file   # stdout만
  */
 import fs from "fs";
+import path from "path";
 import { config } from "../src/lib/config";
 import { aggregateFeedbackStats } from "../src/lib/audit/feedback-stats";
 import type { AuditEntry } from "../src/lib/audit";
@@ -14,7 +17,7 @@ import {
 import { loadEvalQueries } from "../src/lib/search/eval-store";
 import { runEvalSearch } from "../src/lib/search/run-eval";
 
-function readFeedbackLogs(): AuditEntry[] {
+function readAuditLogs(): AuditEntry[] {
   const logPath = config.audit.logPath;
   if (!fs.existsSync(logPath)) return [];
   return fs
@@ -22,13 +25,24 @@ function readFeedbackLogs(): AuditEntry[] {
     .trim()
     .split("\n")
     .filter(Boolean)
-    .map((line) => JSON.parse(line) as AuditEntry)
-    .filter((e) => e.action === "chat.feedback");
+    .map((line) => JSON.parse(line) as AuditEntry);
+}
+
+function countUniqueUsers(logs: AuditEntry[], action: AuditEntry["action"]): number {
+  const emails = new Set(
+    logs.filter((e) => e.action === action && e.userEmail).map((e) => e.userEmail)
+  );
+  return emails.size;
 }
 
 async function main() {
-  const logs = readFeedbackLogs();
-  const stats = aggregateFeedbackStats(logs, { topN: 5 });
+  const writeFile = !process.argv.includes("--no-file");
+  const logs = readAuditLogs();
+  const feedbackLogs = logs.filter((e) => e.action === "chat.feedback");
+  const queryCount = logs.filter((e) => e.action === "chat.query").length;
+  const activeUsers = countUniqueUsers(logs, "chat.query");
+
+  const stats = aggregateFeedbackStats(feedbackLogs, { topN: 5 });
   const evalQueries = await loadEvalQueries();
   const candidates = suggestEvalCandidates(stats.topDownQueries, evalQueries);
   const newCandidates = filterNewEvalCandidates(candidates);
@@ -36,36 +50,68 @@ async function main() {
   const upPct = stats.total > 0 ? ((stats.up / stats.total) * 100).toFixed(1) : "0";
   const downPct = stats.total > 0 ? ((stats.down / stats.total) * 100).toFixed(1) : "0";
 
-  console.log("# CorpBrain 파일럿 주간 리포트 (자동 생성)");
-  console.log(`생성: ${new Date().toISOString()}`);
-  console.log("");
+  const { metrics, passed, threshold } = await runEvalSearch();
 
-  console.log("## 3. 피드백 (👍/👎)");
-  console.log("");
-  console.log("| rating | 건수 | 비율 |");
-  console.log("|--------|------|------|");
-  console.log(`| up | ${stats.up} | ${upPct}% |`);
-  console.log(`| down | ${stats.down} | ${downPct}% |`);
-  console.log("");
+  const lines: string[] = [];
+  const push = (line = "") => lines.push(line);
+
+  push("# CorpBrain 파일럿 주간 리포트 (자동 생성)");
+  push();
+  push(`> 생성: ${new Date().toISOString()}`);
+  push(`> 템플릿: docs/PILOT_QUALITY_REPORT.md · 체크리스트: docs/PILOT_CHECKLIST.md C항목`);
+  push();
+
+  push("## 1. 요약");
+  push();
+  push("| 항목 | 값 |");
+  push("|------|-----|");
+  push(`| 총 질문 수 (\`chat.query\`) | ${queryCount}건 |`);
+  push(`| 활성 사용자 (질문 이메일 unique) | ${activeUsers}명 |`);
+  push(`| 피드백 (👍/👎) | ${stats.total}건 |`);
+  push(`| 👎 비율 | ${(stats.downRate * 100).toFixed(1)}% |`);
+  push();
+
+  push("## 2. 검색 품질 (Hit@3)");
+  push();
+  push("| Hit@1 | Hit@3 | MRR | eval 문항 |");
+  push("|-------|-------|-----|-----------|");
+  push(
+    `| ${(metrics.hitAt1 * 100).toFixed(1)}% | ${(metrics.hitAt3 * 100).toFixed(1)}% | ${metrics.mrr.toFixed(3)} | ${evalQueries.length} |`
+  );
+  push();
+  push(
+    passed
+      ? `✓ PASS (Hit@3 ≥ ${(threshold * 100).toFixed(0)}%)`
+      : `✗ FAIL (Hit@3 < ${(threshold * 100).toFixed(0)}%)`
+  );
+  push();
+
+  push("## 3. 피드백 (👍/👎)");
+  push();
+  push("| rating | 건수 | 비율 |");
+  push("|--------|------|------|");
+  push(`| up | ${stats.up} | ${upPct}% |`);
+  push(`| down | ${stats.down} | ${downPct}% |`);
+  push();
 
   if (stats.topDownQueries.length === 0) {
-    console.log("_👎 피드백 없음_");
+    push("_👎 피드백 없음_");
   } else {
-    console.log("**👎 Top 질문**");
+    push("**👎 Top 질문**");
     stats.topDownQueries.forEach((q, i) => {
       const src = q.sources.length ? ` (${q.sources.join(", ")})` : "";
-      console.log(`${i + 1}. ${q.query} — ${q.count}건${src}`);
+      push(`${i + 1}. ${q.query} — ${q.count}건${src}`);
     });
   }
+  push();
 
-  console.log("");
-  console.log("## 4. eval-queries 신규 후보");
-  console.log("");
+  push("## 4. eval-queries 신규 후보 (C4)");
+  push();
   if (newCandidates.length === 0) {
-    console.log("_신규 후보 없음 (이미 반영됨 또는 👎 없음)_");
+    push("_신규 후보 없음 (이미 반영됨 또는 👎 없음)_");
   } else {
-    console.log("```json");
-    console.log(
+    push("```json");
+    push(
       JSON.stringify(
         newCandidates.map((c) => ({
           query: c.query,
@@ -76,23 +122,39 @@ async function main() {
         2
       )
     );
-    console.log("```");
-    console.log("");
-    console.log("Admin `/admin` 에서 **eval 추가** 또는 위 JSON을 `data/eval-queries.json`에 반영하세요.");
+    push("```");
+    push();
+    push(
+      "→ `data/eval-queries.json` 반영 또는 Admin 검토 (docs/PILOT_CHECKLIST.md C4)"
+    );
   }
+  push();
 
-  console.log("");
-  console.log("## 2. 검색 품질 (Hit@3)");
-  console.log("");
+  push("## 5. D+7 체크리스트 (수동)");
+  push();
+  push("| # | 항목 | 상태 |");
+  push("|---|------|------|");
+  push("| C1 | 일일 health 점검 | ☐ |");
+  push("| C2 | 피드백 검토 (`report:feedback`) | ☐ |");
+  push("| C3 | vault 변경 시 Sync Vault | ☐ |");
+  push("| C4 | 실패 질문 → eval·동의어 보완 | ☐ |");
+  push("| C5 | Hit@3 재측정 (위 §2 참고) | " + (passed ? "☑" : "☐") + " |");
+  push("| C6 | 회고·Go/No-Go | ☐ |");
+  push();
 
-  const { metrics, passed, threshold } = await runEvalSearch();
-  console.log(`| Hit@1 | Hit@3 | MRR | eval 문항 |`);
-  console.log(`|-------|-------|-----|-----------|`);
-  console.log(
-    `| ${(metrics.hitAt1 * 100).toFixed(1)}% | ${(metrics.hitAt3 * 100).toFixed(1)}% | ${metrics.mrr.toFixed(3)} | ${evalQueries.length} |`
-  );
-  console.log("");
-  console.log(passed ? `✓ PASS (Hit@3 ≥ ${(threshold * 100).toFixed(0)}%)` : `✗ FAIL (Hit@3 < ${(threshold * 100).toFixed(0)}%)`);
+  const report = lines.join("\n");
+  console.log(report);
+
+  if (writeFile) {
+    const dir = path.join(process.cwd(), "data", "reports");
+    fs.mkdirSync(dir, { recursive: true });
+    const stamp = new Date().toISOString().slice(0, 10);
+    const outPath = path.join(dir, `pilot-weekly-${stamp}.md`);
+    fs.writeFileSync(outPath, `${report}\n`, "utf-8");
+    console.log("");
+    console.log(`저장: ${outPath}`);
+    console.log("→ docs/PILOT_QUALITY_REPORT.md §1·§4·§6에 복사 후 회고 작성");
+  }
 
   if (!passed) process.exit(1);
 }

@@ -13,6 +13,15 @@
 | 파일럿 대상 | __ 명 |
 | 활성 사용자 (추정) | __ 명 |
 | 총 질문 수 (`chat.query` audit) | __ 건 |
+
+**자동 생성 (D+7 권장)**
+
+```bash
+npm run report:pilot-weekly
+# → data/reports/pilot-weekly-YYYY-MM-DD.md
+# §1 요약·§2 Hit@3·§3 피드백·§4 eval 후보
+```
+
 | Go / No-Go 권고 | **Go / No-Go / 조건부 Go** |
 
 ---
@@ -96,4 +105,4 @@ EVAL_HIT3_THRESHOLD=0.8 npm run eval:search
 
 ---
 
-*템플릿 v0.1 · 2026-07-03*
+*템플릿 v0.2 · 2026-07-03 · `npm run report:pilot-weekly` 연동*

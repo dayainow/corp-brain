@@ -50,11 +50,11 @@
 | # | 항목 | 확인 | 담당 |
 |---|------|:----:|------|
 | C1 | 일일 health 점검 ([RUNBOOK §2](./RUNBOOK.md)) | ☐ | L1 |
-| C2 | 👍/👎 피드백 — `/admin` 또는 `npm run report:feedback` | ☐ | RAG |
+| C2 | 👍/👎 피드백 — `npm run report:feedback` · 주간 `npm run report:pilot-weekly` | ☐ | RAG |
 | C3 | vault 문서 변경 시 Sync Vault 반영 | ☐ | admin |
 | C4 | 실패 질문 5건 수집 → eval 문항·동의어 보완 검토 | ☐ | RAG |
 | C5 | Hit@3 재측정 (문서·설정 변경 시) | ☐ | RAG |
-| C6 | 파일럿 종료 회고 — 유지·확대·v1.1 범위 결정 | ☐ | PM |
+| C6 | 파일럿 종료 회고 — `data/reports/pilot-weekly-*.md` + [PILOT_QUALITY_REPORT](./PILOT_QUALITY_REPORT.md) | ☐ | PM |
 
 ---
 
