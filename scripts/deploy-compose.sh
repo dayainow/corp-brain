@@ -35,10 +35,15 @@ docker compose up -d --build app
 
 echo "==> Health 확인"
 for i in {1..40}; do
-  if curl -fsS http://localhost:3000/api/health >/dev/null 2>&1; then
-    echo "OK: http://localhost:3000/api/health"
-    curl -s http://localhost:3000/api/health | head -c 400
+  if docker compose exec -T app curl -fsS http://localhost:3000/api/health >/dev/null 2>&1; then
+    echo "OK: app container /api/health"
+    docker compose exec -T app curl -fsS http://localhost:3000/api/health | head -c 400
     echo ""
+    if curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1; then
+      echo "OK: host http://127.0.0.1:3000/api/health"
+    else
+      echo "WARN: 호스트 :3000 미응답 — 다른 프로세스가 포트를 점유 중일 수 있습니다 (lsof -i :3000)"
+    fi
     echo ""
     echo "다음 단계:"
     echo "  1. Ollama 실행: ollama run llama3"

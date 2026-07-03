@@ -89,9 +89,18 @@ stop_dev_server_on_3000() {
     local cmd
     cmd=$(ps -p "$pid" -o comm= 2>/dev/null || true)
     if [[ "$cmd" == *"node"* ]]; then
-      log_warn "포트 3000 사용 중 (PID $pid) — Compose 앱과 충돌 가능. dev 서버 종료 권장"
+      log_warn "포트 3000 점유 PID $pid 종료 — Compose 스모크용"
+      kill "$pid" 2>/dev/null || true
     fi
   done
+  sleep 2
+}
+
+compose_health_body() {
+  if docker compose ps app --status running -q 2>/dev/null | grep -q .; then
+    docker compose exec -T app curl -fsS http://localhost:3000/api/health 2>/dev/null && return 0
+  fi
+  curl -fsS --max-time 15 "${BASE_URL}/api/health" 2>/dev/null
 }
 
 deploy_compose() {
@@ -131,8 +140,8 @@ assert_health() {
   echo ""
   echo "==> A6: /api/health 검증"
   local body
-  if ! body=$(curl -fsS --max-time 15 "$BASE_URL/api/health"); then
-    log_fail "health API 요청 실패 ($BASE_URL)"
+  if ! body=$(compose_health_body); then
+    log_fail "health API 요청 실패 ($BASE_URL / compose app)"
     return 1
   fi
 
