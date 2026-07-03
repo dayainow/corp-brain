@@ -10,6 +10,7 @@ import {
 test.describe.configure({ timeout: 180_000 });
 
 test.describe("Ollama RAG E2E (실제 스트리밍)", () => {
+  test.describe.configure({ mode: "serial" });
   let ragStatus: RagE2EStatus;
 
   test.beforeAll(async ({ baseURL }) => {

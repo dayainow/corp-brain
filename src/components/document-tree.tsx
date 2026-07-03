@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
   FileText,
   Folder,
   FolderTree,
+  Eye,
   Loader2,
+  MessageSquare,
   Search,
   X,
 } from "lucide-react";
@@ -32,7 +34,8 @@ interface TreeStats {
 
 interface DocumentTreeProps {
   userRole: UserRole;
-  onSelectDocument: (doc: { title: string; fileName: string }) => void;
+  onPreviewDocument: (doc: { title: string; fileName: string }) => void;
+  onAskDocument: (doc: { title: string; fileName: string }) => void;
   mobileOpen?: boolean;
   onMobileClose?: () => void;
 }
@@ -42,13 +45,15 @@ function TreeNode({
   depth,
   expanded,
   onToggle,
-  onSelectDocument,
+  onPreviewDocument,
+  onAskDocument,
 }: {
   node: VaultTreeNode;
   depth: number;
   expanded: Set<string>;
   onToggle: (id: string) => void;
-  onSelectDocument: (doc: { title: string; fileName: string }) => void;
+  onPreviewDocument: (doc: { title: string; fileName: string }) => void;
+  onAskDocument: (doc: { title: string; fileName: string }) => void;
 }) {
   if (node.type === "file") {
     const label = node.title ?? node.name;
@@ -58,22 +63,15 @@ function TreeNode({
       fileType === "pdf" ? "PDF" : fileType === "docx" ? "DOCX" : null;
 
     return (
-      <button
-        type="button"
-        onClick={() =>
-          onSelectDocument({
-            title: label,
-            fileName,
-          })
-        }
-        className="w-full flex items-start gap-2 px-2 py-1.5 rounded-md text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-700 dark:hover:text-blue-300 transition-colors group min-w-0"
+      <div
+        className="group w-full flex items-start gap-1 px-2 py-1.5 rounded-md text-sm text-slate-700 dark:text-slate-300 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 min-w-0"
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
-        title={`${label}\n파일: ${fileName}\n클릭하면 이 문서에 대해 질문합니다`}
-        aria-label={`${label}, 파일 ${fileName}`}
       >
         <FileText className="w-4 h-4 mt-0.5 shrink-0 text-slate-400 group-hover:text-blue-500" />
         <span className="flex-1 min-w-0">
-          <span className="block truncate">{label}</span>
+          <span className="block truncate" title={label}>
+            {label}
+          </span>
           <span className="flex flex-wrap items-center gap-1 mt-0.5">
             {node.role && node.role !== "general" && (
               <span className="text-[10px] px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
@@ -87,7 +85,29 @@ function TreeNode({
             )}
           </span>
         </span>
-      </button>
+        <div className="flex shrink-0 gap-0.5 mt-0.5">
+          <button
+            type="button"
+            onClick={() => onPreviewDocument({ title: label, fileName })}
+            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/40 dark:hover:text-blue-300 transition-colors"
+            title={`${label} 원문 보기`}
+            aria-label={`${label} 원문 보기`}
+          >
+            <Eye className="w-3 h-3" />
+            <span className="hidden sm:inline">보기</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onAskDocument({ title: label, fileName })}
+            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/40 dark:hover:text-blue-300 transition-colors"
+            title={`${label} 문서로 질문`}
+            aria-label={`${label}로 질문`}
+          >
+            <MessageSquare className="w-3 h-3" />
+            <span className="hidden sm:inline">질문</span>
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -121,7 +141,8 @@ function TreeNode({
             depth={depth + 1}
             expanded={expanded}
             onToggle={onToggle}
-            onSelectDocument={onSelectDocument}
+            onPreviewDocument={onPreviewDocument}
+            onAskDocument={onAskDocument}
           />
         ))}
     </div>
@@ -133,7 +154,8 @@ function TreePanel({
   stats,
   loading,
   error,
-  onSelectDocument,
+  onPreviewDocument,
+  onAskDocument,
   onClose,
   showClose,
 }: {
@@ -141,11 +163,13 @@ function TreePanel({
   stats: TreeStats | null;
   loading: boolean;
   error: string | null;
-  onSelectDocument: (doc: { title: string; fileName: string }) => void;
+  onPreviewDocument: (doc: { title: string; fileName: string }) => void;
+  onAskDocument: (doc: { title: string; fileName: string }) => void;
   onClose?: () => void;
   showClose?: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [expanded, setExpanded] = useState<Set<string>>(() =>
     tree ? new Set(collectFolderIds(tree)) : new Set()
   );
@@ -176,6 +200,11 @@ function TreePanel({
       return next;
     });
   }, []);
+
+  useEffect(() => {
+    if (!showClose || loading) return;
+    searchInputRef.current?.focus();
+  }, [showClose, loading]);
 
   return (
     <div className="flex flex-col h-full w-full min-h-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
@@ -209,11 +238,12 @@ function TreePanel({
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
           <input
+            ref={searchInputRef}
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="문서 검색..."
-            className="w-full pl-8 pr-8 py-1.5 text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            className="w-full pl-8 pr-8 py-1.5 text-base sm:text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
             aria-label="문서 검색"
           />
           {searchQuery && (
@@ -257,13 +287,14 @@ function TreePanel({
             depth={0}
             expanded={effectiveExpanded}
             onToggle={onToggle}
-            onSelectDocument={onSelectDocument}
+            onPreviewDocument={onPreviewDocument}
+            onAskDocument={onAskDocument}
           />
         ))}
       </div>
 
-      <div className="shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 pt-2.5 pb-12 text-[11px] leading-relaxed text-slate-400 dark:text-slate-500">
-        <p>문서를 클릭하면 해당 내용으로 질문할 수 있습니다.</p>
+      <div className="shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-[11px] leading-relaxed text-slate-400 dark:text-slate-500">
+        <p>보기: 원문 미리보기 · 질문: 해당 문서로 채팅</p>
         <p className="mt-1">권한 밖 문서는 표시되지 않습니다.</p>
       </div>
     </div>
@@ -272,7 +303,8 @@ function TreePanel({
 
 export function DocumentTree({
   userRole,
-  onSelectDocument,
+  onPreviewDocument,
+  onAskDocument,
   mobileOpen = false,
   onMobileClose,
 }: DocumentTreeProps) {
@@ -309,10 +341,32 @@ export function DocumentTree({
     };
   }, [userRole]);
 
-  const handleSelect = (doc: { title: string; fileName: string }) => {
-    onSelectDocument(doc);
+  const handlePreview = (doc: { title: string; fileName: string }) => {
+    onPreviewDocument(doc);
     onMobileClose?.();
   };
+
+  const handleAsk = (doc: { title: string; fileName: string }) => {
+    onAskDocument(doc);
+    onMobileClose?.();
+  };
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onMobileClose?.();
+    };
+    window.addEventListener("keydown", onKey);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileOpen, onMobileClose]);
 
   return (
     <>
@@ -324,7 +378,8 @@ export function DocumentTree({
           stats={stats}
           loading={loading}
           error={error}
-          onSelectDocument={handleSelect}
+          onPreviewDocument={handlePreview}
+          onAskDocument={handleAsk}
         />
       </aside>
 
@@ -333,10 +388,14 @@ export function DocumentTree({
         <div
           className="fixed inset-0 z-40 flex lg:hidden"
           onClick={onMobileClose}
+          role="presentation"
         >
           <div
             className="w-[min(100%,20rem)] h-full shadow-2xl"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="사내 문서 목록"
           >
             <TreePanel
               key={stats?.visibleCount ?? "loading"}
@@ -344,12 +403,13 @@ export function DocumentTree({
               stats={stats}
               loading={loading}
               error={error}
-              onSelectDocument={handleSelect}
+              onPreviewDocument={handlePreview}
+              onAskDocument={handleAsk}
               onClose={onMobileClose}
               showClose
             />
           </div>
-          <div className="flex-1 bg-black/40" />
+          <div className="flex-1 bg-black/40" aria-hidden="true" />
         </div>
       )}
     </>

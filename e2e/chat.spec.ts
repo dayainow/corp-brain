@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs } from "./helpers/auth";
+import { loginAs, seedAssistantMessage } from "./helpers/auth";
 
 test.describe("채팅 UI", () => {
   test.beforeEach(async ({ page }) => {
@@ -27,5 +27,15 @@ test.describe("채팅 UI", () => {
     await page.getByRole("link", { name: "Admin" }).click();
     await page.waitForURL("/admin");
     await expect(page.getByText("Admin Dashboard")).toBeVisible();
+  });
+
+  test("마지막 답변에 후속 질문 칩이 표시된다", async ({ page }) => {
+    await seedAssistantMessage(
+      page,
+      "연차는 입사 1년 이상 15일입니다. [출처: 연차휴가규정.md]"
+    );
+    await page.reload();
+    await expect(page.getByText("이어서 물어보기")).toBeVisible();
+    await expect(page.getByRole("button", { name: /3줄 요약/ })).toBeVisible();
   });
 });

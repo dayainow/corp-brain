@@ -22,7 +22,7 @@ export default defineConfig({
       ? "npm run build && npx next start -p 3001"
       : "npx next dev -p 3001",
     url: `${E2E_BASE_URL}/api/health`,
-    reuseExistingServer: false,
+    reuseExistingServer: !process.env.CI,
     timeout: 180_000,
     env: {
       AUTH_SECRET: "e2e-test-secret-at-least-32-chars-long",

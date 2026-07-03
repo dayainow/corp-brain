@@ -14,6 +14,11 @@ import { DocumentUpload } from "@/components/document-upload";
 import { DocumentTree } from "@/components/document-tree";
 import { HelpPanel } from "@/components/help-panel";
 import { OnboardingBanner } from "@/components/onboarding-banner";
+import { FollowUpChips } from "@/components/follow-up-chips";
+import { DocumentPreviewModal } from "@/components/document-preview-modal";
+import { suggestFollowUpQuestions } from "@/lib/chat/follow-up-suggestions";
+import { useVisualViewportHeight } from "@/lib/hooks/use-visual-viewport-height";
+import type { DocumentPreviewTarget } from "@/lib/documents/preview-target";
 import { QuickStartPrompts } from "@/components/quick-start-prompts";
 import type { UserRole } from "@/lib/rbac";
 import { extractMessageText } from "@/lib/chat/messages";
@@ -91,9 +96,12 @@ export default function Chat() {
   const [indexMessage, setIndexMessage] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const [treeOpen, setTreeOpen] = useState(false);
+  const [treePreview, setTreePreview] = useState<DocumentPreviewTarget | null>(null);
 
   const userRole = (session?.user?.role ?? "general") as UserRole;
   const isAdmin = userRole === "admin";
+
+  useVisualViewportHeight();
 
   const handleIndex = async () => {
     setIsIndexing(true);
@@ -114,10 +122,15 @@ export default function Chat() {
     }
   };
 
+  const sendFollowUp = (text: string) => {
+    setRagPhase("searching");
+    sendMessage({ text });
+  };
+
   if (sessionStatus === "loading") return null;
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans">
+    <div className="flex flex-col h-[var(--app-height,100dvh)] max-h-[var(--app-height,100dvh)] overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans">
       <header className="flex shrink-0 justify-between items-center p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-2">
           <Database className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -155,8 +168,9 @@ export default function Chat() {
 
           <button
             onClick={() => setTreeOpen(true)}
-            className="flex items-center gap-1 px-2 sm:px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-sm transition-colors lg:hidden"
+            className="flex items-center gap-1 px-2 sm:px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-sm transition-colors lg:hidden touch-manipulation"
             title="사내 문서 목록"
+            aria-label="사내 문서 목록"
           >
             <FolderTree className="w-4 h-4" />
             <span className="hidden sm:inline">문서</span>
@@ -228,11 +242,11 @@ export default function Chat() {
           userRole={userRole}
           mobileOpen={treeOpen}
           onMobileClose={() => setTreeOpen(false)}
-          onSelectDocument={({ title }) => {
-            setRagPhase("searching");
-            sendMessage({
-              text: `「${title}」 문서의 주요 내용을 알려줘`,
-            });
+          onPreviewDocument={({ fileName }) => {
+            setTreePreview({ fileName });
+          }}
+          onAskDocument={({ title }) => {
+            sendFollowUp(`「${title}」 문서의 주요 내용을 알려줘`);
           }}
         />
 
@@ -287,6 +301,12 @@ export default function Chat() {
             const showStreamingStatus =
               isLastAssistant && isLoading && !assistantText.trim();
 
+            const showFollowUps =
+              isLastAssistant && !isLoading && assistantText.trim();
+            const followUpQuestions = showFollowUps
+              ? suggestFollowUpQuestions(prevQuery, assistantText, assistantSources)
+              : [];
+
             return (
               <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
@@ -318,6 +338,13 @@ export default function Chat() {
                           sources={assistantSources}
                         />
                       )}
+                      {showFollowUps && (
+                        <FollowUpChips
+                          questions={followUpQuestions}
+                          onSelect={sendFollowUp}
+                          disabled={isLoading}
+                        />
+                      )}
                     </>
                   )}
                 </div>
@@ -334,10 +361,10 @@ export default function Chat() {
         )}
           </main>
 
-          <footer className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+          <footer className="shrink-0 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
             <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto flex items-center relative">
               <input
-                className="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-full pl-6 pr-14 py-4 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                className="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-full pl-5 sm:pl-6 pr-14 py-3 sm:py-4 text-base text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
                 value={input}
                 placeholder="사내 문서와 관련된 질문을 입력하세요..."
                 onChange={(e) => setInput(e.target.value)}
@@ -346,7 +373,8 @@ export default function Chat() {
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="absolute right-2 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="absolute right-2 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center touch-manipulation"
+                aria-label="질문 전송"
               >
                 <Send className="w-5 h-5" />
               </button>
@@ -360,6 +388,11 @@ export default function Chat() {
         open={helpOpen}
         onClose={() => setHelpOpen(false)}
         userRole={userRole}
+      />
+
+      <DocumentPreviewModal
+        target={treePreview}
+        onClose={() => setTreePreview(null)}
       />
     </div>
   );

@@ -72,7 +72,11 @@ check_health() {
   body="$(echo "$body" | sed '$d')"
 
   if [[ "$http_code" == "000" ]]; then
-    log_fail "서버 미응답 ($BASE_URL) — npm run dev 또는 deploy:compose"
+    if [[ "$RUN_E2E" == true ]]; then
+      log_warn "서버 미응답 ($BASE_URL) — E2E는 Playwright가 :3001에서 자체 기동"
+    else
+      log_fail "서버 미응답 ($BASE_URL) — npm run dev 또는 deploy:compose"
+    fi
     return 1
   fi
 
@@ -141,6 +145,9 @@ fi
 if [[ "$RUN_E2E" == true ]]; then
   echo ""
   echo "── pilot E2E ──"
+  # Playwright webServer 포트 충돌 방지
+  lsof -ti :3001 2>/dev/null | xargs kill -9 2>/dev/null || true
+  sleep 1
   npm run test:e2e -- e2e/pilot.spec.ts e2e/auth.spec.ts || log_fail "pilot E2E 실패"
 fi
 

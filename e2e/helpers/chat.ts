@@ -20,21 +20,20 @@ export async function sendChatAndWaitForReply(
   );
 
   const input = page.getByPlaceholder("사내 문서와 관련된 질문을 입력하세요");
+  await expect(input).toBeEnabled({ timeout: 15_000 });
   await input.fill(question);
   await page.locator("footer form button[type='submit']").click();
 
   const response = await chatPost;
   expect(response.ok()).toBeTruthy();
 
-  await expect(page.getByText("답변을 생성하고 있습니다...")).not.toBeVisible({ timeout });
+  await expect(page.getByRole("status")).not.toBeVisible({ timeout });
 
-  await expect(
-    page.getByPlaceholder("사내 문서와 관련된 질문을 입력하세요")
-  ).toBeEnabled({ timeout: 10_000 });
+  await expect(input).toBeEnabled({ timeout: timeout });
 
   const assistantBubble = page
     .locator("main .justify-start .rounded-2xl")
-    .filter({ hasNot: page.getByText("답변을 생성하고 있습니다...") })
+    .filter({ hasNot: page.getByRole("status") })
     .last();
 
   await expect(assistantBubble).toBeVisible({ timeout: 10_000 });
