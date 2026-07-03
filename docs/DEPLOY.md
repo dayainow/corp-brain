@@ -112,7 +112,7 @@ EVAL_HIT3_THRESHOLD=0.8 npm run eval:search
 - [ ] PgVector 연결 (`checks.postgres: ok`)
 - [ ] `npm run eval:search` Hit@3 ≥ 80%
 
-상세 장애 대응: [RUNBOOK.md](./RUNBOOK.md)
+상세 장애 대응: [RUNBOOK.md](./RUNBOOK.md) · 파일럿 오픈: [PILOT_CHECKLIST.md](./PILOT_CHECKLIST.md)
 
 ---
 

@@ -1,8 +1,8 @@
 # CorpBrain 운영 Runbook (초안)
 
 > **대상**: NovaPay 플랫폼·RAG 운영 담당자  
-> **버전**: v0.1 · 2026-07-03  
-> **관련 문서**: [DEPLOY.md](./DEPLOY.md) · [납품 산출물](./deliverables/README.md)
+> **버전**: v0.2 · 2026-07-03  
+> **관련 문서**: [DEPLOY.md](./DEPLOY.md) · [PILOT_CHECKLIST.md](./PILOT_CHECKLIST.md) · [납품 산출물](./deliverables/README.md)
 
 ---
 
@@ -218,21 +218,78 @@ ollama run llama3        # 별도 터미널
 
 ---
 
-## 7. 연락·에스컬레이션 (템플릿)
+## 7. 연락·에스컬레이션
 
-| 단계 | 담당 | 조건 |
+> 아래 연락처·온콜 표는 **NovaPay 파일럿 기준 예시**입니다. 실제 납품 시 조직도에 맞게 교체하세요.
+
+### 7.1 담당 조직·연락처 (예시)
+
+| 역할 | 담당 | 이메일 | Slack | 비고 |
+|------|------|--------|-------|------|
+| **서비스 오너** | 이민호 (플랫폼팀 팀장) | lee.minho@novapay.kr | `@minho.lee` | CorpBrain PoC 총괄 |
+| **L1 온콜 (1차)** | 김준호 (플랫폼 엔지니어) | kim.junho@novapay.kr | `@junho.kim` | health·재기동·Sync |
+| **L2 RAG·검색** | 박서연 (AI플랫폼) | park.seoyeon@novapay.kr | `@seoyeon.park` | 인덱스·Hit@3·Ollama |
+| **L2 인프라** | 최동훈 (DevOps) | choi.donghun@novapay.kr | `@donghun.choi` | Compose·PgVector·Redis |
+| **L3 보안** | 정하늘 (정보보안) | jung.haneul@novapay.kr | `@haneul.jung` | 감사·유출·권한 |
+| **L3 경영 보고** | NovaPay IT기획실 | it-planning@novapay.kr | `#it-escalation` | 30분+ 장애·외부 공지 |
+
+**공통 채널 (예시)**
+
+| 채널 | 용도 |
+|------|------|
+| `#corpbrain-alerts` | health degraded·배포 알림 (PagerDuty/웹훅) |
+| `#corpbrain-support` | 사용자 문의·품질 피드백 |
+| `#platform-oncall` | L1·L2 온콜 협업 |
+
+**긴급 전화 (예시, 업무 시간 외)**
+
+| 구분 | 번호 | 비고 |
 |------|------|------|
-| L1 | 온콜 엔지니어 | health degraded 15분 지속 |
-| L2 | 플랫폼·RAG | unhealthy, 데이터 손실 의심 |
-| L3 | 보안·인프라 | 감사 이상·유출 의심 |
+| 플랫폼 온콜 | 010-1234-5678 | 김준호 (주간 로테이션) |
+| DevOps 백업 | 010-2345-6789 | 최동훈 |
+| 보안 핫라인 | security-hotline@novapay.kr | L3 전용 |
+
+---
+
+### 7.2 온콜 로테이션 (예시: 2026년 7월)
+
+| 주차 | 기간 | L1 Primary | L1 Backup | L2 (RAG) | L2 (Infra) |
+|------|------|------------|-------------|----------|------------|
+| W27 | 07/01–07/06 | 김준호 | 이수민 | 박서연 | 최동훈 |
+| W28 | 07/07–07/13 | 이수민 | 김준호 | 박서연 | 한지우 |
+| W29 | 07/14–07/20 | 김준호 | 이수민 | 오태양 | 최동훈 |
+| W30 | 07/21–07/27 | 이수민 | 김준호 | 박서연 | 한지우 |
+| W31 | 07/28–08/03 | 한지우 | 김준호 | 오태양 | 최동훈 |
+
+- **Primary**: 1차 응대·health 확인·Runbook §4 조치
+- **Backup**: Primary 부재·15분 내 미응답 시 승계
+- **L2**: 30분 내 미해결·`unhealthy`·데이터 이슈 시 호출
+- 로테이션 갱신: 매월 말 `#platform-oncall`에 차월 표 게시 (예시 담당: 최동훈)
+
+---
+
+### 7.3 에스컬레이션 기준
+
+| 단계 | 담당 | 조건 | 목표 응답 |
+|------|------|------|-----------|
+| **L1** | 온콜 Primary | `degraded` 15분 지속, 사용자 3건+ 동일 증상 | 15분 이내 ack |
+| **L2** | RAG / Infra | `unhealthy`, chunk 대량 소실, 배포 후 전면 장애 | 30분 이내 |
+| **L3** | 보안·IT기획 | 감사 이상, 기밀 유출 의심, 1시간+ 미복구 | 1시간 이내 보고 |
 
 **장애 보고에 포함할 정보**
 
-- 발생 시각 (UTC+9)
+- 발생 시각 (KST)
 - `/api/health` JSON 전문
 - 최근 배포·vault 변경·Sync 여부
-- 영향 범위 (웹 / Slack / admin)
+- 영향 범위 (웹 / Slack / admin) 및 추정 사용자 수
 - 수행한 조치·결과
+- 담당자·다음 업데이트 예정 시각
+
+**장애 종료 후 (예시)**
+
+1. `#corpbrain-alerts`에 resolved 공지
+2. `data/audit.log` 해당 구간 보존
+3. 48시간 내 간단한 사후 메모 (원인·재발 방지) — Confluence `CorpBrain/Incidents` (예시)
 
 ---
 
@@ -252,3 +309,4 @@ ollama run llama3        # 별도 터미널
 | 날짜 | 버전 | 내용 |
 |------|------|------|
 | 2026-07-03 | v0.1 | 초안 작성 (health·Sync·장애 시나리오·백업) |
+| 2026-07-03 | v0.2 | §7 담당자·온콜 로테이션 예시 추가 |

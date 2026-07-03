@@ -28,6 +28,7 @@
 | 문서 | 파일 | 설명 |
 |------|------|------|
 | 운영 Runbook | [../RUNBOOK.md](../RUNBOOK.md) | 일상 점검·장애 대응·백업·배포 |
+| 파일럿 체크리스트 | [../PILOT_CHECKLIST.md](../PILOT_CHECKLIST.md) | 오픈 전·당일·1주 Go/No-Go |
 | 배포 가이드 | [../DEPLOY.md](../DEPLOY.md) | Docker Compose·환경 변수 |
 
 ---
