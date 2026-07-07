@@ -33,15 +33,13 @@ load_pilot_secrets
 for arg in "$@"; do
   case "$arg" in
     --verify-only) VERIFY_ONLY=true ;;
-    --webhook-url)
-      echo "오류: --webhook-url 뒤에 URL 필요"; exit 1
-      ;;
     --webhook-url=*) WEBHOOK_URL="${arg#--webhook-url=}" ;;
     -h|--help)
       sed -n '2,6p' "$0"
       exit 0
       ;;
-    *) echo "Unknown option: $arg"; exit 1 ;;
+    --webhook-url) ;; # while 루프에서 URL 처리
+    *) [[ "$arg" == --* ]] && { echo "Unknown option: $arg"; exit 1; } ;;
   esac
 done
 
