@@ -2,7 +2,9 @@
 
 > **대상**: PM · IT · L1 운영  
 > **선행**: [PILOT_CHECKLIST.md](./PILOT_CHECKLIST.md) A항목 완료  
-> **버전**: v0.1 · 2026-07-03
+> **버전**: v0.2 · 2026-07-07  
+> **기술 준비 완료**: [PILOT_TECH_READY.md](./PILOT_TECH_READY.md)  
+> **오픈 선언**: [PILOT_DECLARATION.md](./PILOT_DECLARATION.md)
 
 ---
 
@@ -156,4 +158,16 @@ EVAL_HIT3_THRESHOLD=0.8 npm run eval:search   # Hit@3만
 
 ---
 
-*문서 버전 v0.1 · 운영 상세는 [RUNBOOK.md](./RUNBOOK.md)*
+## 6. 오픈 선언 (수동 마무리)
+
+기술 준비(`pilot:ready`)가 끝난 뒤 **사람·프로세스**만 진행합니다.
+
+→ **[PILOT_DECLARATION.md](./PILOT_DECLARATION.md)** (B1·B2·B5·Go 서명·공지 문구)
+
+```bash
+npm run pilot:closeout-loop -- --quick   # 마무리 3회 검증
+```
+
+---
+
+*문서 버전 v0.2 · 기술 준비: PILOT_TECH_READY.md · 운영: RUNBOOK.md*

@@ -93,7 +93,10 @@ npm run pilot:a10-setup -- --webhook-url 'https://hooks.slack.com/services/...'
 # 또는 config/pilot-secrets.env 에 저장 후
 npm run pilot:a10-setup
 npm run pilot:a10-setup -- --verify-only   # 재검증
+npm run pilot:closeout-loop -- --quick     # 마무리 3회 검증
 ```
+
+**오픈 선언 (수동)**: [PILOT_DECLARATION.md](./PILOT_DECLARATION.md) · 기술 준비: [PILOT_TECH_READY.md](./PILOT_TECH_READY.md)
 
 **health 주기 알림** (15분 기본)
 
@@ -108,7 +111,8 @@ npm run health:watch
 | 명령 | 용도 |
 |------|------|
 | `pilot:preflight` | D-1 기본 점검 |
-| `pilot:a10-setup` | A10 웹훅 저장 + 알림 2건 전송 검증 |
+| `pilot:a10-setup` | A10 웹훅 저장 + 알림 검증 |
+| `pilot:closeout-loop` | 마무리 3회 검증 루프 |
 | `pilot:a10-smoke` | A10 웹훅·온콜 스모크 |
 | `pilot:ready` | 오픈 전 전체 자동 검증 |
 | `pilot:bday` | B-Day 계정·안내·health |

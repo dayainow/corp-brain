@@ -117,8 +117,8 @@ else
   echo "✓ .env.local 에 HEALTH_ALERT_WEBHOOK_URL 저장됨"
 fi
 
-# Compose app에 웹훅 env 반영
-if [[ -n "$(docker compose ps --status running -q app 2>/dev/null || true)" ]]; then
+# Compose app에 웹훅 env 반영 (신규 설정 시만)
+if [[ "$VERIFY_ONLY" != true ]] && [[ -n "$(docker compose ps --status running -q app 2>/dev/null || true)" ]]; then
   set -a
   # shellcheck disable=SC1091
   source "$ENV_FILE"

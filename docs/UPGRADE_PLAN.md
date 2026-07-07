@@ -2,7 +2,7 @@
 
 > **타깃 고객사**: 주식회사 노바페이 (NovaPay)  
 > **문서 버전**: v2.0 · 2026-07-02  
-> **현재 단계**: Phase 4.5 (파일럿 준비) 진행 중
+> **현재 단계**: Phase 4.5 **기술 준비 완료** → 오픈 선언 ([PILOT_DECLARATION.md](./docs/PILOT_DECLARATION.md))
 
 ---
 
@@ -91,7 +91,8 @@
 - [x] 문서 트리 보기/질문 · RAG 신뢰 UX · 후속 칩 · 모바일
 - [x] E2E **32건** · `pilot:ready` · `pilot:bday` · `report:pilot-weekly`
 - [x] 납품 문서 11종 + Runbook v0.3 동기화
-- [ ] 파일럿 50명 운영 오픈 (B-Day 수동: Slack·온콜 A10)
+- [x] 기술 준비 완료 (`pilot:ready` · [PILOT_TECH_READY.md](./PILOT_TECH_READY.md))
+- [ ] 파일럿 50명 **오픈 선언** (수동: [PILOT_DECLARATION.md](./PILOT_DECLARATION.md) B1·B2·B5·D)
 
 ### Phase 5 — 확장 (향후)
 

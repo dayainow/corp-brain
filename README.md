@@ -8,6 +8,8 @@
 > **납품 산출물 (11종)**: [`docs/deliverables/README.md`](docs/deliverables/README.md)  
 > **운영 Runbook**: [`docs/RUNBOOK.md`](docs/RUNBOOK.md)  
 > **파일럿 체크리스트**: [`docs/PILOT_CHECKLIST.md`](docs/PILOT_CHECKLIST.md)  
+> **기술 준비 완료**: [`docs/PILOT_TECH_READY.md`](docs/PILOT_TECH_READY.md)  
+> **오픈 선언 가이드**: [`docs/PILOT_DECLARATION.md`](docs/PILOT_DECLARATION.md)  
 > **파일럿 오픈 가이드**: [`docs/PILOT_OPEN.md`](docs/PILOT_OPEN.md)  
 > **파일럿 품질 리포트**: [`docs/PILOT_QUALITY_REPORT.md`](docs/PILOT_QUALITY_REPORT.md)
 
@@ -348,6 +350,7 @@ SLACK_USER_MAP={"U01234":"lee.minho@novapay.kr"}
 | `npm run pilot:ready` | B-Day 전 전체 자동 점검 |
 | `npm run pilot:env-bday` | B-Day env (SLACK·웹훅) + Compose 반영 |
 | `npm run pilot:a10-setup` | A10 웹훅 저장 + Slack 알림 검증 |
+| `npm run pilot:closeout-loop` | 마무리 3회 검증 (`--quick` 옵션) |
 | `npm run pilot:bday` | B-Day B1~B3 (계정·Slack·health) |
 | `npm run pilot:bday -- --step b4` | B4 Slack `/corpbrain` 스모크 |
 | `npm run pilot:bday -- --all` | A10 + B1~B4 일괄 |
@@ -563,7 +566,8 @@ corp-brain/
 - [x] Redis 기반 Rate limit fallback 구조
 - [x] Compose 배포 문서/스크립트 (`docs/DEPLOY.md`, `deploy:compose`, 호스트 **:3100**)
 - [x] Cross-encoder 옵션형 리랭킹 경로 추가
-- [x] 파일럿 체크리스트·오픈 가이드 (`PILOT_CHECKLIST`, `PILOT_OPEN`, `pilot:preflight`)
+- [x] 파일럿 기술 준비 완료 (`PILOT_TECH_READY`, `pilot:ready`)
+- [ ] 파일럿 오픈 선언 (수동: `PILOT_DECLARATION`)
 - [x] **답변 신뢰 UX** — RAG 단계·참고 문서 카드·청크 하이라이트
 - [x] **후속 질문 칩** · 문서 트리 **보기/질문** 분리 · 모바일 safe-area
 - [x] Cross-encoder ON/OFF A/B 평가 자동화 (`npm run eval:cross-encoder-ab`)
