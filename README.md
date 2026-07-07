@@ -390,7 +390,52 @@ CI: `/.github/workflows/ci.yml` + `quality-harness.yml` — push/PR 시 lint →
 
 ## 실행 방법
 
-### 처음 시작 (체크리스트)
+### 클론 후 누구나 실행하기
+
+저장소를 클론하면 **코드·샘플 문서·시드 계정·테스트**까지 포함되어 있어, 아래 **필수 준비**만 갖추면 누구나 로컬에서 UI·RAG를 돌려볼 수 있습니다.
+
+#### 레포에 포함된 것 (Git)
+
+| 항목 | 설명 |
+|------|------|
+| 앱 소스 | Next.js 16, API, UI 전체 |
+| `vault/` | NovaPay 샘플 사내 문서 **22종** (부서·RBAC별) |
+| 시드 계정 | `src/lib/auth/users.ts` — 5종 (비밀번호 PoC: `novapay2026`) |
+| `docker-compose.yml` | app + PostgreSQL(PgVector) + Redis |
+| 품질·파일럿 스크립트 | `pilot:ready`, `smoke:compose`, `eval:search` 등 |
+| E2E·단위 테스트 | Playwright, Vitest |
+
+#### Git에 **없는** 것 (클론 후 생성)
+
+| 항목 | 생성 방법 |
+|------|-----------|
+| `.env.local` | `cp .env.example .env.local` + `AUTH_SECRET` 입력 |
+| 벡터 인덱스 | `npm run index:vault` 또는 Admin **Sync Vault** (최초 1회 필수) |
+| `src/data/vectors.json` | 인덱싱 시 자동 생성 (`.gitignore`) |
+| Slack·웹훅 시크릿 | 선택 — [RUNBOOK §2.4](docs/RUNBOOK.md) |
+
+#### 클론한 사람이 준비할 것
+
+| 구분 | 항목 | 용도 |
+|------|------|------|
+| **필수** | Node.js 20+, npm | 앱 실행 |
+| **필수** | Ollama + `llama3` | RAG 답변 (로컬 LLM, API 키 불필요) |
+| **필수** | `AUTH_SECRET` (32자+) | `.env.local` — `openssl rand -base64 32` |
+| 선택 | Docker Desktop / Colima | Compose 운영 스모크 (`:3100`) |
+| 선택 | Slack / Google SSO | 웹 UI만 쓰면 **불필요** |
+
+#### 실행 경로 2가지
+
+| 모드 | 명령 | URL | 벡터 DB | 용도 |
+|------|------|-----|---------|------|
+| **개발** | `npm run dev` | http://localhost:3000 | `vectors.json` | 코드 수정·빠른 확인 |
+| **Compose** | `./scripts/deploy-compose.sh` | http://localhost:**3100** | PgVector | 운영에 가까운 스모크·파일럿 |
+
+> E2E 테스트는 내부적으로 **:3001** 포트를 사용합니다.
+
+상세: [`docs/deliverables/08_개발환경구성서.md`](docs/deliverables/08_개발환경구성서.md) · 배포: [`docs/DEPLOY.md`](docs/DEPLOY.md)
+
+### 처음 시작 — 개발 모드 (체크리스트)
 
 ```bash
 git clone https://github.com/dayainow/corp-brain.git && cd corp-brain
@@ -408,13 +453,34 @@ npm run dev                # http://localhost:3000
 4. `[출처: 연차휴가규정.md]` 확인
 5. general 계정(`kim.junho@novapay.kr`)으로 NDA 질의 → 권한 밖 문서·트리 노드 미노출 확인
 
-### Docker (PgVector)
+### Docker Compose (운영 스모크)
+
+Compose는 **앱 + PgVector + Redis**를 컨테이너로 한 번에 띄웁니다. Ollama만 호스트에서 별도 실행합니다.
 
 ```bash
-docker compose up -d postgres
+cp .env.example .env.local
+# AUTH_SECRET 설정 후
+
+./scripts/deploy-compose.sh    # postgres + redis + app → :3100
+ollama run llama3              # 별도 터미널
+# 브라우저: http://localhost:3100
+# Admin → Sync Vault (또는 npm run index:vault, VECTOR_STORE=pgvector)
+```
+
+일괄 검증:
+
+```bash
+npm run smoke:compose          # 배포 + 인덱싱 + health + Hit@3
+npm run pilot:ready            # Compose + E2E + RAG (파일럿 게이트)
+```
+
+수동 단계만:
+
+```bash
+docker compose up -d postgres redis
 npm run db:init
-VECTOR_STORE=pgvector npm run db:migrate
-docker compose up app
+VECTOR_STORE=pgvector DATABASE_URL=postgresql://corpbrain:corpbrain@localhost:5433/corpbrain npm run index:vault
+docker compose up -d --build app
 ```
 
 ---

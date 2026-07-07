@@ -1,6 +1,7 @@
 # CorpBrain 배포 가이드
 
-> Phase 6 — PgVector + Redis + Docker Compose 운영 배포
+> Phase 6 — PgVector + Redis + Docker Compose 운영 배포  
+> **클론 후 첫 실행**: [README §실행 방법](../README.md) · [08_개발환경구성서](./deliverables/08_개발환경구성서.md)
 
 ---
 
