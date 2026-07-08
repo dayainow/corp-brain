@@ -28,6 +28,7 @@
 | 문서 | 파일 | 설명 |
 |------|------|------|
 | 운영 Runbook | [../RUNBOOK.md](../RUNBOOK.md) | 일상 점검·장애 대응·백업·배포 |
+| **인수인계 체크리스트** | [../HANDOVER_CHECKLIST.md](../HANDOVER_CHECKLIST.md) | 납품·온보딩·역할별 인수 (2026-07-08) |
 | 파일럿 오픈 가이드 | [../PILOT_OPEN.md](../PILOT_OPEN.md) | B-Day B1~B3, D+7 피드백 |
 | 파일럿 체크리스트 | [../PILOT_CHECKLIST.md](../PILOT_CHECKLIST.md) | Go/No-Go · A~D 항목 |
 | 파일럿 품질 리포트 | [../PILOT_QUALITY_REPORT.md](../PILOT_QUALITY_REPORT.md) | D+1~D+7 회고·Hit@3 기록 |
@@ -37,6 +38,6 @@
 
 ## 문서 활용 안내
 
-- 본 산출물은 **현재 코드베이스(main, 2026-07-03)** 기준으로 작성·갱신되었습니다.
+- 본 산출물은 **현재 코드베이스(main, 2026-07-08)** 기준으로 작성·갱신되었습니다.
 - PDF 변환 시 Markdown 뷰어나 `pandoc` 사용을 권장합니다.
 - 상세 설계·로드맵: [`docs/UPGRADE_PLAN.md`](../UPGRADE_PLAN.md)

@@ -7,6 +7,7 @@
 > 상세 계획·설계 다이어gram: [`docs/UPGRADE_PLAN.md`](docs/UPGRADE_PLAN.md)  
 > **납품 산출물 (11종)**: [`docs/deliverables/README.md`](docs/deliverables/README.md)  
 > **운영 Runbook**: [`docs/RUNBOOK.md`](docs/RUNBOOK.md)  
+> **인수인계 체크리스트**: [`docs/HANDOVER_CHECKLIST.md`](docs/HANDOVER_CHECKLIST.md)  
 > **파일럿 체크리스트**: [`docs/PILOT_CHECKLIST.md`](docs/PILOT_CHECKLIST.md)  
 > **기술 준비 완료**: [`docs/PILOT_TECH_READY.md`](docs/PILOT_TECH_READY.md)  
 > **오픈 선언 가이드**: [`docs/PILOT_DECLARATION.md`](docs/PILOT_DECLARATION.md)  
@@ -706,5 +707,6 @@ corp-brain/
 이슈·PR: [dayainow/corp-brain](https://github.com/dayainow/corp-brain)
 
 - 아키텍처·NovaPay 도입 계획: [`docs/UPGRADE_PLAN.md`](docs/UPGRADE_PLAN.md)
+- **인수인계 체크리스트**: [`docs/HANDOVER_CHECKLIST.md`](docs/HANDOVER_CHECKLIST.md)
 - 납품 산출물 (11종): [`docs/deliverables/README.md`](docs/deliverables/README.md)
 - 환경 변수 템플릿: [`.env.example`](.env.example)
