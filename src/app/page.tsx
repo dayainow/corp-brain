@@ -4,7 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { Send, Database, Loader2, ShieldAlert, Trash2, LogOut, User, CircleHelp, FolderTree } from "lucide-react";
+import { Send, Database, Loader2, ShieldAlert, Trash2, LogOut, User, CircleHelp, FolderTree, Search } from "lucide-react";
 import { ChatMessageContent } from "@/components/chat-message";
 import { ChatFeedback } from "@/components/chat-feedback";
 import { ChatStreamingStatus } from "@/components/chat-streaming-status";
@@ -20,6 +20,8 @@ import { suggestFollowUpQuestions } from "@/lib/chat/follow-up-suggestions";
 import { useVisualViewportHeight } from "@/lib/hooks/use-visual-viewport-height";
 import type { DocumentPreviewTarget } from "@/lib/documents/preview-target";
 import { QuickStartPrompts } from "@/components/quick-start-prompts";
+import { KeywordSearchResults } from "@/components/keyword-search-results";
+import type { KeywordSearchResult } from "@/lib/search/keyword-vault";
 import type { UserRole } from "@/lib/rbac";
 import { extractMessageText } from "@/lib/chat/messages";
 import {
@@ -47,6 +49,8 @@ function resolveStreamPhase(
   return status === "submitted" ? "searching" : "generating";
 }
 
+type MainMode = "chat" | "keyword";
+
 export default function Chat() {
   const { data: session, status: sessionStatus } = useSession();
 
@@ -63,10 +67,52 @@ export default function Chat() {
   });
 
   const [input, setInput] = useState("");
+  const [mainMode, setMainMode] = useState<MainMode>("chat");
+  const [keywordResults, setKeywordResults] = useState<KeywordSearchResult[]>([]);
+  const [keywordLoading, setKeywordLoading] = useState(false);
+  const [keywordError, setKeywordError] = useState<string | null>(null);
+  const [keywordHasSearched, setKeywordHasSearched] = useState(false);
+  const [activeKeywordQuery, setActiveKeywordQuery] = useState("");
+
+  const runKeywordSearch = async (query: string) => {
+    const q = query.trim();
+    if (!q) {
+      setKeywordResults([]);
+      setKeywordError(null);
+      setKeywordHasSearched(false);
+      setActiveKeywordQuery("");
+      return;
+    }
+
+    setKeywordLoading(true);
+    setKeywordError(null);
+    setActiveKeywordQuery(q);
+
+    try {
+      const res = await fetch(`/api/documents/search?q=${encodeURIComponent(q)}&limit=20`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "키워드 검색에 실패했습니다.");
+      }
+      const data = await res.json();
+      setKeywordResults(Array.isArray(data.results) ? data.results : []);
+      setKeywordHasSearched(true);
+    } catch (err) {
+      setKeywordResults([]);
+      setKeywordHasSearched(true);
+      setKeywordError(err instanceof Error ? err.message : "키워드 검색에 실패했습니다.");
+    } finally {
+      setKeywordLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
+    if (mainMode === "keyword") {
+      void runKeywordSearch(input);
+      return;
+    }
     setRagPhase("searching");
     sendMessage({ text: input });
     setInput("");
@@ -123,8 +169,13 @@ export default function Chat() {
   };
 
   const sendFollowUp = (text: string) => {
+    setMainMode("chat");
     setRagPhase("searching");
     sendMessage({ text });
+  };
+
+  const handleKeywordAsk = (doc: { title: string; fileName: string }) => {
+    sendFollowUp(`「${doc.title}」 문서의 주요 내용을 알려줘`);
   };
 
   if (sessionStatus === "loading") return null;
@@ -258,6 +309,18 @@ export default function Chat() {
           />
 
           <main className="flex-1 overflow-y-auto scrollbar-themed p-4 sm:p-6 w-full max-w-4xl mx-auto flex flex-col gap-6">
+        {mainMode === "keyword" ? (
+          <KeywordSearchResults
+            query={activeKeywordQuery}
+            results={keywordResults}
+            loading={keywordLoading}
+            error={keywordError}
+            hasSearched={keywordHasSearched}
+            onPreview={({ fileName }) => setTreePreview({ fileName })}
+            onAsk={handleKeywordAsk}
+          />
+        ) : (
+          <>
         {error && (
           <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-sm text-red-700 dark:text-red-300">
             답변 생성에 실패했습니다. Ollama가 실행 중인지 확인해 주세요.
@@ -359,24 +422,75 @@ export default function Chat() {
             </div>
           </div>
         )}
+          </>
+        )}
           </main>
 
           <footer className="shrink-0 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+            <div className="w-full max-w-4xl mx-auto mb-2">
+              <div
+                className="inline-flex rounded-full border border-slate-200 dark:border-slate-700 p-0.5 bg-slate-100 dark:bg-slate-800"
+                role="tablist"
+                aria-label="메인 검색 모드"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mainMode === "chat"}
+                  onClick={() => setMainMode("chat")}
+                  className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors ${
+                    mainMode === "chat"
+                      ? "bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm"
+                      : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                  }`}
+                >
+                  AI 질문
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mainMode === "keyword"}
+                  onClick={() => setMainMode("keyword")}
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors ${
+                    mainMode === "keyword"
+                      ? "bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm"
+                      : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                  }`}
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  본문 검색
+                </button>
+              </div>
+            </div>
             <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto flex items-center relative">
               <input
                 className="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-full pl-5 sm:pl-6 pr-14 py-3 sm:py-4 text-base text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
                 value={input}
-                placeholder="사내 문서와 관련된 질문을 입력하세요..."
+                placeholder={
+                  mainMode === "chat"
+                    ? "사내 문서와 관련된 질문을 입력하세요..."
+                    : "본문에서 찾을 키워드를 입력하세요..."
+                }
                 onChange={(e) => setInput(e.target.value)}
-                disabled={isLoading}
+                disabled={mainMode === "chat" && isLoading}
               />
               <button
                 type="submit"
-                disabled={isLoading || !input.trim()}
+                disabled={
+                  !input.trim() ||
+                  (mainMode === "chat" && isLoading) ||
+                  (mainMode === "keyword" && keywordLoading)
+                }
                 className="absolute right-2 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center touch-manipulation"
-                aria-label="질문 전송"
+                aria-label={mainMode === "chat" ? "질문 전송" : "본문 검색"}
               >
-                <Send className="w-5 h-5" />
+                {mainMode === "keyword" && keywordLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : mainMode === "keyword" ? (
+                  <Search className="w-5 h-5" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
               </button>
             </form>
           </footer>

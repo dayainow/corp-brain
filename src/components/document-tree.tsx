@@ -242,9 +242,9 @@ function TreePanel({
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="문서 검색..."
+            placeholder="문서 이름 검색..."
             className="w-full pl-8 pr-8 py-1.5 text-base sm:text-sm rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            aria-label="문서 검색"
+            aria-label="문서 이름 검색"
           />
           {searchQuery && (
             <button
@@ -294,7 +294,7 @@ function TreePanel({
       </div>
 
       <div className="shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-[11px] leading-relaxed text-slate-400 dark:text-slate-500">
-        <p>보기: 원문 미리보기 · 질문: 해당 문서로 채팅</p>
+        <p>보기: 원문 미리보기 · 질문: 해당 문서로 AI 채팅</p>
         <p className="mt-1">권한 밖 문서는 표시되지 않습니다.</p>
       </div>
     </div>

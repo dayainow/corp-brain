@@ -48,6 +48,7 @@
 | POST | `/api/upload` | manager+ | 문서 업로드 |
 | GET | `/api/upload` | manager+ | 업로드 목록 |
 | GET | `/api/documents/tree` | 로그인 | 권한별 문서 트리 |
+| GET | `/api/documents/search` | 로그인 | 본문 키워드 검색 (`?q=`, RBAC) |
 | GET | `/api/documents/content` | 로그인 | 출처 원문 조회 |
 | GET | `/api/health` | 공개 | 헬스체크 |
 | GET | `/api/admin/audit` | admin | 감사 로그 |
@@ -201,6 +202,47 @@ data: {"type":"text-delta","delta":"연차는 "}
   }
 }
 ```
+
+---
+
+### GET `/api/documents/search?q={query}&limit={n}`
+
+**권한**: 로그인 (세션 `role` 기반, 만료 문서 제외)
+
+임베딩·LLM 없이 인덱스 청크 본문을 키워드로 검색합니다.
+
+**Query**
+
+| 파라미터 | 필수 | 설명 |
+|----------|------|------|
+| q | O | 검색어 (최대 200자) |
+| limit | | 결과 수 (기본 20, 최대 50) |
+
+**Response** `200`
+```json
+{
+  "query": "휴가",
+  "count": 2,
+  "results": [
+    {
+      "fileName": "연차휴가규정.md",
+      "title": "연차 휴가 규정",
+      "role": "general",
+      "fileType": "md",
+      "score": 12,
+      "snippet": "…연차는 입사 1년 후 15일 부여…"
+    }
+  ]
+}
+```
+
+**에러**
+
+| 코드 | 조건 |
+|------|------|
+| 400 | `q` 누락 또는 200자 초과 |
+| 401 | 미로그인 |
+| 500 | 검색 처리 오류 |
 
 ---
 
